@@ -73,8 +73,58 @@ And here's the image of final power section.
 
 ![Power system](images/power_setup.jpeg)
 
-## Grove base cape
+## Grove system
+Before going further, I would like to have just a quick word on Grove system. It is a prototyping system, similar to Beaglonebone capes, that uses a standardized wire connector for interfacing with a large set of Grove modules. This is supposed to make prototyping easier and flexible. For more details and list of available Grove modules, you can visit http://wiki.seeedstudio.com/Grove/.
 
-## Configuring Grove base cape in Linux
+**At this point, it is worth mentioning that although all Grove modules have the same Grove connector, it can have different types of electrical signals.** The Grove ports come in below four types:
+
+1. Analog Grove port
+2. Digital Grove port
+3. UART Grove port
+4. I2C Grove port
+
+The analog Grove port connects to the ADC pins on the Beaglebone chip.
+
+The digial Grove ports connects to the GPIO pins.
+
+And finally the UART and I2C Groove ports connect to the UART and I2C pins of the Beaglebone chip respectively.
+
+Therefore while selecting Grove modules, care must be taken to make sure the correct Grove connector type is used.
+
+**The Beaglebone Green main board has only I2C and UART Grove ports, hence it cannot interface with the digital and analog Grove modules.**
+
+Below is the snapshot of online shop for Grove modules (https://www.seeedstudio.com/category/Grove-c-1003.html) which has a nice collection of Grove modules, sufficient to serve most of the requirements.
+
+![Grove modules](images/grove_modules.png)
+
+## Grove base cape - connectivity
+The Beaglebone Grove base cape forms the base shield, to which other Grove modules can be easily attached. It provides multiple Grove ports, and can be used to attach all types of available Grove modules.
+
+![Grove base cape](images/grove_base_cape.jpeg)
+
+The Grove base cape has 6 digital Grove ports (2 of them can be used as UARTs), 2 analog Grove ports and 4 I2C Grove ports. The base cape also contains a 32KB EEPROM which is originally intended to store the cape specific information for Capemanager and it is also possible disable the write protect of the EEPROM, by shorting a jumper on board, and use it to store custom data.
+
+In addition, it also has a 3.3 – 5V voltage level selection switch, which allows to set the output voltage levels on the base cape Grove ports. Now there is common concern that voltage should not be applied to any Beaglebone I/O pins before the board itself is powered up. It is mentioned in the section "5.15 Expansion Board External Power" of the BBG SRM. Therefore, this voltage switch also acts to protect the Beaglebone pins by making sure no voltage is applied before full power up.
+
+The following figure shows the voltage level conversion schematics.
+
+![Voltage protection](images/voltage_level_switch.png)
+
+The VDD_G level in above schematics can be selected between 3.3 or 5V using a slider switch on the base cape.
+
+![Slider switch](images/slider_switch.jpeg)
+
+In addition to base cape, I also ordered the Grove I2C hub, which allows connecting 3 additional I2C devices to a single I2C port and although the base cape itself was sufficient to meet all of my interfacing requirements, I thought it might come in handly if I want to add more Grove modules in future.
+
+![Grove I2C Hub](images/grove_i2c_hub.jpeg)
+
+## Using the Grove base cape in Linux
+Admittedly it has been a while since I have worked with Beaglebone. The last time I worked with Beaglebone Black, it was running Linux kernel version 3.8 and had a Capemanager mechanism to load the device tree overlays to enable and configure capes. The kernel version on Beaglebone Green is 4.9, and a lot has changed regarding how capes are handled.
+
+I was expecting the same Beaglebone Capemanager interface to load the device tree overlay for the Grove base cape. I tried dumping the contents of the Grove base cape EEPROM to find the part number and revision, which is supposed to load the correct device tree overlay fragment (dtbo) for the Grove base cape.
+
+
+
+
 
 ## Grove 16-channel servo controller
