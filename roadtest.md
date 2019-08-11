@@ -73,6 +73,61 @@ And here's the image of final power section.
 
 ![Power system](images/power_setup.jpeg)
 
+## Sharing the internet over USB Ethernet
+On host pc, find out the USB ethernet interface of the Beaglebone Green. It will be the interface with IP address *192.168.7.1*. Note down the name of this interface *enx3403de6337b1* as it will be used to setup IP packet forwarding to enable internet access. Also note down the host interface connected to the internet which is wlp1s0 in this case.
+```bash
+test@HardwareTestPC:~$ ifconfig
+enp0s31f6: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+        ether 50:7b:9d:6d:4a:01  txqueuelen 1000  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+        device interrupt 16  memory 0xe1300000-e1320000  
+
+enx3403de6337b1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.7.1  netmask 255.255.255.252  broadcast 192.168.7.3
+        inet6 fe80::8df7:68f:45cd:e572  prefixlen 64  scopeid 0x20<link>
+        ether 34:03:de:63:37:b1  txqueuelen 1000  (Ethernet)
+        RX packets 88  bytes 18031 (18.0 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 78  bytes 21737 (21.7 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+...
+wlp1s0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.128.56  netmask 255.255.255.0  broadcast 192.168.128.255
+        inet6 fe80::2ba2:3c21:e423:b52  prefixlen 64  scopeid 0x20<link>
+        ether a4:34:d9:27:b2:44  txqueuelen 1000  (Ethernet)
+        RX packets 2528488  bytes 3031876355 (3.0 GB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 1328091  bytes 1268728518 (1.2 GB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+Enable the IP network forwarding for the incoming packets on Beaglebone Green USB ethernet interface by typing below commands on host.
+``` bash
+test@HardwareTestPC:~$ sudo iptables --table nat --append POSTROUTING --out-interface wlp1s0 -j MASQUERADE
+test@HardwareTestPC:~$ sudo iptables --append FORWARD --in-interface enx3403de6337b1 -j ACCEPT
+test@HardwareTestPC:~$ sudo sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
+```
+
+On Beaglebone Green, type below commands to start using the host's internet connection.
+```bash
+debian@beaglebone:~$ sudo route add default gw 192.168.7.1
+debian@beaglebone:~$ sudo sh -c " echo nameserver 8.8.8.8 >> /etc/resolv.conf"
+debian@beaglebone:~$ # Verify that internet is accessible by pinging to a known server
+debian@beaglebone:~$ ping www.google.com
+PING www.google.com (216.58.200.68) 56(84) bytes of data.
+64 bytes from hkg07s30-in-f4.1e100.net (216.58.200.68): icmp_seq=1 ttl=54 time=5.66 ms
+64 bytes from hkg07s30-in-f4.1e100.net (216.58.200.68): icmp_seq=2 ttl=54 time=6.13 ms
+64 bytes from hkg07s30-in-f4.1e100.net (216.58.200.68): icmp_seq=3 ttl=54 time=5.82 ms
+64 bytes from hkg07s30-in-f4.1e100.net (216.58.200.68): icmp_seq=4 ttl=54 time=4.79 ms
+^C
+--- www.google.com ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3005ms
+rtt min/avg/max/mdev = 4.794/5.605/6.137/0.501 ms
+```
+
 ## Grove system
 Before going further, I would like to have just a quick word on Grove system. It is a prototyping system, similar to Beaglonebone capes, that uses a standardized wire connector for interfacing with a large set of Grove modules. This is supposed to make prototyping easier and flexible. For more details and list of available Grove modules, you can visit http://wiki.seeedstudio.com/Grove/.
 
@@ -123,8 +178,154 @@ Admittedly it has been a while since I have worked with Beaglebone. The last tim
 
 I was expecting the same Beaglebone Capemanager interface to load the device tree overlay for the Grove base cape. I tried dumping the contents of the Grove base cape EEPROM to find the part number and revision, which is supposed to load the correct device tree overlay fragment (dtbo) for the Grove base cape.
 
+```bash
+debian@beaglebone:~$ sudo cat /sys/bus/i2c/devices/2-0054/eeprom | hexdump -C
+[sudo] password for debian:
+00000000  aa 55 33 ee 41 31 47 72  6f 76 65 20 42 61 73 65  |.U3.A1Grove Base|
+00000010  20 43 61 70 65 20 66 6f  72 20 42 65 61 67 6c 65  | Cape for Beagle|
+00000020  42 6f 6e 65 00 00 30 30  41 32 53 65 65 65 64 73  |Bone..00A2Seeeds|
+00000030  74 75 64 69 6f 00 00 00  00 00 42 42 2d 47 52 45  |tudio.....BB-GRE|
+00000040  45 4e 2d 47 52 4f 56 45  00 00 00 00 30 30 31 30  |EN-GROVE....0010|
+00000050  33 30 33 30 30 33 35 00  ff ff ff ff ff ff ff ff  |3030035.........|
+00000060  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+*
+00008000
+```
+I was expecting to find the dtbo file named *BB-GREEN-GROVE-00A2.dtbo* under the */lib/firmware* directory but it was not there.
 
+I tried to access the usual slots sysfs interface file */sys/devices/platform/bone_capemgr/slots* but this file was absent as well.
 
+There is a lot of outdated information on this which becomes very confusing. Finally I came across this useful link https://elinux.org/Beagleboard:BeagleBoneBlack_Debian#U-Boot_Overlays which clarified that the old slots based mechanism for loading cape device tree overlays has been deprecated now.
 
+From kernel version 4.4 onwards, the preferred method to load the cape device tree overlays is via u-boot.
+
+Better yet, there is a new mechanism for configuring the each Beaglebone pin directly from shell, without loading any device tree fragment.
+
+This new feature is called Beaglebone Universal I/O https://github.com/cdsteinkuehler/beaglebone-universal-io. This is enabled by default and what it does is export all the unused GPIO pins and configure them into a default input mode.
+
+## Using the Beaglebone Universal I/O
+Before using the Beaglebone Universal I/O mechanism, it is worth mentioning that it works on the Beaglebone pin addressing scheme.
+
+On Beaglebone, the pins are referenced by the their P8/P9 header name and position. For example, GPIO pin 115 is referenced as P9_27.
+
+For a complete reference on pin naming schemes and other details, these documents prepared by Derek Molloy are a complete comprehensive resources.
+
+<object data="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP8HeaderTable.pdf" type="application/pdf" width="700px" height="700px">
+    <embed src="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP8HeaderTable.pdf">
+        <p>Please download the PDF to view it: <a href="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP8HeaderTable.pdf">P8 Header Reference</a>.</p>
+    </embed>
+</object>
+<object data="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP9HeaderTable.pdf" type="application/pdf" width="700px" height="700px">
+    <embed src="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP9HeaderTable.pdf">
+        <p>Please download the PDF to view it: <a href="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP9HeaderTable.pdf">P9 Header Reference</a>.</p>
+    </embed>
+</object>
+
+The list of pins available on the Grove base cape is given below:
+* GPIO_15 / UART1_TXD
+* GPIO_14 / UART1_RXD
+* GPIO_30 / UART4_RXD
+* GPIO_31 / UART4_TXD
+* GPIO_115
+* GPIO_117
+* GPIO_50
+* GPIO_51
+
+To find the current status of the  pins, we can use the config-pin utility but in order to use it, we need to find a mapping between Beaglebone pin number and the GPIO pin number. In addition to above mentioned references, this mapping can also be found by reading the following file:
+
+``` bash
+debian@beaglebone:~$ cat /sys/devices/platform/ocp/ocp\:cape-universal/status
+ ...
+ 8 P9_27                    115 IN  0
+ 9 P9_26                     14 IN  0
+10 P9_25                    117 IN  0
+11 P9_24                     15 IN  0
+17 P9_16                     51 IN  0
+19 P9_14                     50 IN  0
+20 P9_13                     31 IN  0
+22 P9_11                     30 IN  0
+...
+```
+Once we know the beaglebone pin number for the GPIO pin, we can find its configuration. For instance, the pin number for GPIO 115 is P9_27. Its status can be found as below:
+
+```bash
+debian@beaglebone:~$ config-pin -q P9_27
+P9_27 Mode: default Direction: in Value: 0
+```
+The above output shows that GPIO 115 has been configured as input and is in the default state.
+
+Currently, the default state for all pins is gpio with pull-up/down resistor set to the reset default value, but this could change. This is same for all other pins.
+
+The UART4 pins (GPIO_30 & GPIO_31) can be configured as below to set them in UART mode:
+```bash
+debian@beaglebone:~$ # List the available pin modes
+debian@beaglebone:~$ config-pin -l P9_11
+default gpio gpio_pu gpio_pd gpio_input uart
+debian@beaglebone:~$ config-pin -l P9_13
+default gpio gpio_pu gpio_pd gpio_input uart
+debian@beaglebone:~$ # Set the UART mode
+debian@beaglebone:~$ config-pin P9_11 uart
+debian@beaglebone:~$ config-pin P9_13 uart
+debian@beaglebone:~$ # Verify the UART mode is set
+debian@beaglebone:~$ config-pin -q P9_11
+P9_11 Mode: uart
+debian@beaglebone:~$ config-pin -q P9_13
+P9_13 Mode: uart
+```
+
+```bash
+debian@beaglebone:~$ # Disable the serial getty service on UART4 port
+debian@beaglebone:~$ sudo systemctl disable serial-getty@ttyO4
+
+```
 
 ## Grove 16-channel servo controller
+The hexabot has 2-DOF for each leg. In simple words, each leg consists of 2 servo joints. Thus, I needed to control 12 servo motors. I searched for a suitable Grove module in the actuator category and soon enough, I found an I2C based PCA9685 16 channel PWM driver Grove module. This will allow me to control upto 16 servos by generating maximum 16 PWM signals.
+
+![PCA9685](images/pca9685.jpeg)
+
+For maximum flexibility, the I2C address of the PWM driver is configurable via solderable pads on the PCB. The Grove base cape schmatics show that the I2C expansion bus is connected to the I2C2 controller. Hence, I probed the I2C bus 2 for any I2C devices using the preinstalled i2c-detect utiility on the Beagleboard green.
+
+Below is the output of I2C devices detected. The PCA9685 is detected at the default address of 0x7F as expected.
+
+```bash
+debian@beaglebone:~$ i2cdetect -a -y -r 2
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: -- -- -- -- UU UU UU UU -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: 70 -- -- -- -- -- -- -- -- -- -- -- -- -- -- 7f
+```
+The PCA9685 PWM driver can be loaded by following the steps below:
+```bash
+debian@beaglebone:~$ # Load the pca9685 i2c kernel driver
+debian@beaglebone:~$ sudo sh -c "echo pca9685 0x7f > /sys/bus/i2c/devices/i2c-2/new_device"
+debian@beaglebone:~$ # Verify the pca9685 i2c kernel driver has been loaded
+debian@beaglebone:~$ dmesg | tail -n 2
+[   99.675826] pru-rproc 4a338000.pru1: PRU rproc node /ocp/pruss_soc_bus@4a326000/pruss@4a300000/pru@4a338000 probed successfully
+[  901.164890] i2c i2c-2: new_device: Instantiated device pca9685 at 0x7f
+debian@beaglebone:~$ lsmod | grep pca9685
+pwm_pca9685             4383  0
+debian@beaglebone:~$ # See the number of available PWM channels
+debian@beaglebone:~$ cat /sys/class/pwm/pwmchip8/npwm
+17
+```
+After loading the driver and querying the number of available PWM channels, it show 17 available PWM channels. I guess one of the channel is reserved for a global PWM channel where all 16 PWM servo signals are same (not verified). Anyways, let's see how to configure the PWM on channel 1.
+```bash
+debian@beaglebone:~$ # Select PWM on Channel 1
+debian@beaglebone:~$ echo 0 > /sys/class/pwm/pwmchip8/export
+debian@beaglebone:~$ # Configure the PWM on Channel 1
+debian@beaglebone:~$ # Set time period to 20ms (50Hz) (value in nano seconds)
+debian@beaglebone:~$ sudo sh -c "echo 20000000 > /sys/class/pwm/pwmchip8/pwm0/period"
+debian@beaglebone:~$ # Set the 50% duty cycle (ON time in nanoseconds)
+debian@beaglebone:~$ sudo sh -c "echo 10000000 > /sys/class/pwm/pwmchip8/pwm0/duty_cycle"
+debian@beaglebone:~$ # Enable the PWM
+debian@beaglebone:~$ sudo sh -c "echo 1 > /sys/class/pwm/pwmchip8/pwm0/enable"
+```
+Below is the image of PWM signal measured on channel 1. As expected, with 50% duty cycle and voltage selector switch on base cape set to 5V, the measured voltage is 2.5V.
+
+![PWM Signal](images/pwm_signal.jpeg)
