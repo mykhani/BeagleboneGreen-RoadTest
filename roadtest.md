@@ -256,6 +256,7 @@ The above output shows that GPIO 115 has been configured as input and is in the 
 
 Currently, the default state for all pins is gpio with pull-up/down resistor set to the reset default value, but this could change. This is same for all other pins.
 
+## Testing the base cape UART4
 The UART4 pins (GPIO_30 & GPIO_31) can be configured as below to set them in UART mode:
 ```bash
 debian@beaglebone:~$ # List the available pin modes
@@ -273,10 +274,58 @@ debian@beaglebone:~$ config-pin -q P9_13
 P9_13 Mode: uart
 ```
 
+Short the pins 11 and 13 of P9 header so that Beaglebone can talk to itself in a loopback mode. Whatever is sent on TX pin is received by the RX pin.
+
+![UART4 loopback](images/uart_loopback.jpeg)
+
+Disable the serial getty service running on UART4 port. This service is resposible for showing the login prompt if a connection is made on UART4. In my experience, it might interfere with manual UART4 testing so it is better to disable it so that it doesn't try to access UART4. But first we need to find the tty* device file that corresponds to UART4. From the online documentation, I could easily find that it is /dev/ttyO4. However, there is another method of find this out from the boot logs iteself. After the Beaglebone has booted, run the below command to list down the detected UART ports.
+
 ```bash
-debian@beaglebone:~$ # Disable the serial getty service on UART4 port
+debian@beaglebone:~$ dmesg | grep tty
+[    0.000000] Kernel command line: console=ttyO0,115200n8 bone_capemgr.uboot_capemgr_enabled=1 root=/dev/mmcblk1p1 ro rootfstype=ext4 rootwait uboot_detected_capes=BB-GREEN-GROVE, coherent_pool=1M net.ifnames=0 quiet
+[    0.003255] WARNING: Your 'console=ttyO0' has been replaced by 'ttyS0'
+[    1.515339] 44e09000.serial: ttyS0 at MMIO 0x44e09000 (irq = 158, base_baud = 3000000) is a 8250
+[    1.528266] console [ttyS0] enabled
+[    1.529288] 48022000.serial: ttyS1 at MMIO 0x48022000 (irq = 159, base_baud = 3000000) is a 8250
+[    1.530150] 48024000.serial: ttyS2 at MMIO 0x48024000 (irq = 160, base_baud = 3000000) is a 8250
+[    1.530982] 481a8000.serial: ttyS4 at MMIO 0x481a8000 (irq = 161, base_baud = 3000000) is a 8250
+[    1.531827] 481aa000.serial: ttyS5 at MMIO 0x481aa000 (irq = 162, base_baud = 3000000) is a 8250
+```
+
+Consulting the *"Memory Map"* section of AM335x TRM, I found that the UARt4 base register is 481a8000. Hence, */dev/ttyS4* corresponds to UART4. I found this out later, after I had used */dev/ttyO4* for UART4 testing but I have verified and the commands works the same if */dev/ttyS4* is used instead of */dev/ttyO4*.
+
+![UART4 base register](images/uart4_base_register.png)
+
+Disable the serial getty running service on UART4 port
+
+```bash
 debian@beaglebone:~$ sudo systemctl disable serial-getty@ttyO4
 
+```
+
+Configure the serial port.
+
+```bash
+debian@beaglebone:~$ # configure the serial port
+debian@beaglebone:~$ stty -F /dev/ttyO4 115200 cs8 -cstopb -parenb
+
+```
+In one terminal, start reading the UART4 device file while in other, start writing to the UART4 device file.
+```bash
+debian@beaglebone:~$ # Read the serial port in one terminal
+debian@beaglebone:~$ cat /dev/ttyO4
+
+debian@beaglebone:~$ # In other terminal, write to UART4
+debian@beaglebone:~$ echo "Writing to UART4 1" > /dev/ttyO4
+debian@beaglebone:~$ echo "Writing to UART4 2" > /dev/ttyO4
+debian@beaglebone:~$ echo "Writing to UART4 3" > /dev/ttyO4
+```
+The first terminal should have below output.
+```bash
+debian@beaglebone:~$ cat /dev/ttyO4
+Writing to UART4 1
+Writing to UART4 2
+Writing to UART4 3
 ```
 
 ## Grove 16-channel servo controller
