@@ -329,6 +329,7 @@ Writing to UART4 3
 ```
 
 ### Testing the base cape ADC Pins
+#### Beaglebone Green base cape ADC protection
 Beaglebone Green has 8 channel 12-bit ADC module. The ref voltage for the ADC is set as 1.8V and ADC pins are very sensitive to over-voltage and can easily be damaged if the input voltage exceeds the safe limits.
 
 The absolute maxium rating for the ADC pin is described as -0.5V to 2.1V in the AM335x datasheet. Therefore, in most cases, it is better to protect the ADC inputs so that inputs do not exceed maximum limits.
@@ -337,7 +338,43 @@ Below is the schematics of the ADC pin protection and interface circuit on Beagl
 
 ![ADC protection](images/adc_protection.png)
 
-The analog input from the Grove ADC port goes to a voltage divider circuit, and then the scaled down voltage is fed into the non-inverting input of LMV324 op-amp, configured in the voltage follower mode with unity gain. The input voltage scaling factor comes out to be 0.359 (56k/(56k + 100k). This means that the voltage of upto 5.8V can be safely applied to the Grove ADC pins (this doesn't take into account the effect of resistance tolerances which is 1%). The negative supply voltage of the op-amp is connected to GND so ideally the negative input voltages would get clamped to 0V (I am not sure why there is still a negative side clamping diode on ADC input). The BAT54SW in the schmatics is the low forward voltage drop Schottky diode and is used to clamp the ADC input voltage to 1.8V + forward voltage drop. For an average value of 0.3V forward voltage drop, this makes the positive clamping voltage to be 2.1V, the maximum tolereable ADC input voltage level.
+The analog input from the Grove ADC port goes to a voltage divider circuit, and then the scaled down voltage is fed into the non-inverting input of LMV324 op-amp, configured in the voltage follower mode with unity gain. The input voltage scaling factor comes out to be 0.359 (56k/(56k + 100k). This means that the voltage of upto 5.8V can be safely applied to the Grove ADC pins (this doesn't take into account the effect of resistance tolerances which is 1%). The negative supply voltage of the op-amp is connected to GND so ideally the negative input voltages would get clamped to 0V (I am not sure why there is still a negative side clamping diode on ADC input). The BAT54SW in the schmatics is the low forward voltage drop Schottky diode and is used to clamp the ADC input voltage to 1.8V + forward voltage drop of the diode. For an average value of 0.3V forward voltage drop, this makes the positive clamping voltage to be 2.1V, the maximum tolereable ADC input voltage level.
+
+I still don't get the why there are 1k resistors (R6, R10) in the feedback path, as per my understanding, these resistors should be connected between the output of op-amp and Beaglebone's analog pins as the only function they seem to have is limit the current going into the ADC pins when they are clamped. Anyways, it's been ages since I worked with op-amps at the hardware level so maybe I am missing something but still, all the ADC protection circuits I have found for Beaglebone Black has the current limiting resistor connected between the op-amp output and ADC input pins.   
+
+#### Reading the ADC pins
+The sysfs based interface for reading the ADC pins is shown below:
+```bash
+debian@beaglebone:~$ ls -l /sys/bus/iio/devices/iio\:device0/
+total 0
+drwxr-xr-x 2 root root    0 Aug 11 11:42 buffer
+-r--r--r-- 1 root root 4096 Aug 11 11:42 dev
+-rw-r--r-- 1 root root 4096 Aug 11 11:42 in_voltage0_raw
+-rw-r--r-- 1 root root 4096 Aug 11 11:42 in_voltage1_raw
+-rw-r--r-- 1 root root 4096 Aug 11 11:42 in_voltage2_raw
+-rw-r--r-- 1 root root 4096 Aug 11 11:42 in_voltage3_raw
+-rw-r--r-- 1 root root 4096 Aug 11 11:42 in_voltage4_raw
+-rw-r--r-- 1 root root 4096 Aug 11 11:42 in_voltage5_raw
+-rw-r--r-- 1 root root 4096 Aug 11 11:42 in_voltage6_raw
+-r--r--r-- 1 root root 4096 Aug 11 11:42 name
+lrwxrwxrwx 1 root root    0 Aug 11 11:42 of_node -> ../../../../../../firmware/devicetree/base/ocp/tscadc@44e0d000/adc
+drwxr-xr-x 2 root root    0 Aug 11 11:42 power
+drwxr-xr-x 2 root root    0 Aug 11 11:42 scan_elements
+lrwxrwxrwx 1 root root    0 Jan  1  2000 subsystem -> ../../../../../../bus/iio
+-rw-r--r-- 1 root root 4096 Jan  1  2000 uevent
+```
+where in_voltage0_raw refers to the ADC channel 0 raw value and same goes for other 6 raw voltage files.
+
+Just to quickly test ADC pins, I connected the VCC pin of one of the Grove ports to the pin A0 of the Grove ADC port. The results are given below:
+```bash
+debian@beaglebone:~$ # Connect VCC pin to A0 pin of the Grove ADC port
+debian@beaglebone:~$ cat /sys/bus/iio/devices/iio\:device0/in_voltage0_raw
+2756
+debian@beaglebone:~$ # Remove VCC pin from A0 pin of the Grove ADC port
+debian@beaglebone:~$ cat /sys/bus/iio/devices/iio\:device0/in_voltage0_raw
+0
+```
+The above raw 12‐bit (0‐4095) ADC value can be converted to the input voltage as (2756 / 4095 * 1.8) / 0.359 = 3.374 which is accurate as the VCC is selected as 3.3V using the voltage level selector switch on the base cape. Measuring the VCC voltage using multimeter shows 3.377V.
 
 ### Testing the base cape digital pins
 For this test, I set GPIO 51 pin as output and GPIO 50 pin as input. I connected both pins using a jumper wire. Here are the results:
