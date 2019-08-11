@@ -152,7 +152,7 @@ Below is the snapshot of online shop for Grove modules (https://www.seeedstudio.
 
 ![Grove modules](images/grove_modules.png)
 
-## Grove base cape - connectivity
+## Grove base cape - connectivity platform
 The Beaglebone Grove base cape forms the base shield, to which other Grove modules can be easily attached. It provides multiple Grove ports, and can be used to attach all types of available Grove modules.
 
 ![Grove base cape](images/grove_base_cape.jpeg)
@@ -173,7 +173,7 @@ In addition to base cape, I also ordered the Grove I2C hub, which allows connect
 
 ![Grove I2C Hub](images/grove_i2c_hub.jpeg)
 
-## Using the Grove base cape in Linux
+### Using the Grove base cape in Linux
 Admittedly it has been a while since I have worked with Beaglebone. The last time I worked with Beaglebone Black, it was running Linux kernel version 3.8 and had a Capemanager mechanism to load the device tree overlays to enable and configure capes. The kernel version on Beaglebone Green is 4.9, and a lot has changed regarding how capes are handled.
 
 I was expecting the same Beaglebone Capemanager interface to load the device tree overlay for the Grove base cape. I tried dumping the contents of the Grove base cape EEPROM to find the part number and revision, which is supposed to load the correct device tree overlay fragment (dtbo) for the Grove base cape.
@@ -203,7 +203,7 @@ Better yet, there is a new mechanism for configuring the each Beaglebone pin dir
 
 This new feature is called Beaglebone Universal I/O https://github.com/cdsteinkuehler/beaglebone-universal-io. This is enabled by default and what it does is export all the unused GPIO pins and configure them into a default input mode.
 
-## Using the Beaglebone Universal I/O
+### Using the Beaglebone Universal I/O
 Before using the Beaglebone Universal I/O mechanism, it is worth mentioning that it works on the Beaglebone pin addressing scheme.
 
 On Beaglebone, the pins are referenced by the their P8/P9 header name and position. For example, GPIO pin 115 is referenced as P9_27.
@@ -256,7 +256,7 @@ The above output shows that GPIO 115 has been configured as input and is in the 
 
 Currently, the default state for all pins is gpio with pull-up/down resistor set to the reset default value, but this could change. This is same for all other pins.
 
-## Testing the base cape UART4
+### Testing the base cape UART pins
 The UART4 pins (GPIO_30 & GPIO_31) can be configured as below to set them in UART mode:
 ```bash
 debian@beaglebone:~$ # List the available pin modes
@@ -328,6 +328,32 @@ Writing to UART4 2
 Writing to UART4 3
 ```
 
+### Testing the bae cape ADC Pins
+
+### Testing the base cape digital pins
+For this test, I set GPIO 51 pin as output and GPIO 50 pin as input. I connected both pins using a jumper wire. Here are the results:
+```bash
+debian@beaglebone:~$ # Set GPIO 51 of base cape as output
+debian@beaglebone:~$ config-pin P9_16 out
+debian@beaglebone:~$ # verify
+debian@beaglebone:~$ config-pin -q P9_16
+P9_16 Mode: gpio Direction: out Value: 0
+debian@beaglebone:~$ # Set GPIO 50 pin of base cape as input
+debian@beaglebone:~$ config-pin P9_14 in
+debian@beaglebone:~$ # verify
+debian@beaglebone:~$ config-pin -q P9_14
+P9_14 Mode: gpio Direction: in Value: 0
+debian@beaglebone:~$ # Set the GPIO 51 pin as HIGH
+debian@beaglebone:~$ config-pin P9_16 high
+debian@beaglebone:~$ # Read the state of GPIO 50
+debian@beaglebone:~$ config-pin -q P9_14
+P9_14 Mode: gpio Direction: in Value: 1
+debian@beaglebone:~$ # Set the GPIO 51 pin as LOW
+debian@beaglebone:~$ config-pin P9_16 low
+debian@beaglebone:~$ # Read the state of GPIO 50
+debian@beaglebone:~$ config-pin -q P9_14
+P9_14 Mode: gpio Direction: in Value: 0
+```
 ## Grove 16-channel servo controller
 The hexabot has 2-DOF for each leg. In simple words, each leg consists of 2 servo joints. Thus, I needed to control 12 servo motors. I searched for a suitable Grove module in the actuator category and soon enough, I found an I2C based PCA9685 16 channel PWM driver Grove module. This will allow me to control upto 16 servos by generating maximum 16 PWM signals.
 
