@@ -328,7 +328,16 @@ Writing to UART4 2
 Writing to UART4 3
 ```
 
-### Testing the bae cape ADC Pins
+### Testing the base cape ADC Pins
+Beaglebone Green has 8 channel 12-bit ADC module. The ref voltage for the ADC is set as 1.8V and ADC pins are very sensitive to over-voltage and can easily be damaged if the input voltage exceeds the safe limits.
+
+The absolute maxium rating for the ADC pin is described as -0.5V to 2.1V in the AM335x datasheet. Therefore, in most cases, it is better to protect the ADC inputs so that inputs do not exceed maximum limits.
+
+Below is the schematics of the ADC pin protection and interface circuit on Beaglebone Green base cape.
+
+![ADC protection](images/adc_protection.png)
+
+The analog input from the Grove ADC port goes to a voltage divider circuit, and then the scaled down voltage is fed into the non-inverting input of LMV324 op-amp, configured in the voltage follower mode with unity gain. The input voltage scaling factor comes out to be 0.359 (56k/(56k + 100k). This means that the voltage of upto 5.8V can be safely applied to the Grove ADC pins (this doesn't take into account the effect of resistance tolerances which is 1%). The negative supply voltage of the op-amp is connected to GND so ideally the negative input voltages would get clamped to 0V (I am not sure why there is still a negative side clamping diode on ADC input). The BAT54SW in the schmatics is the low forward voltage drop Schottky diode and is used to clamp the ADC input voltage to 1.8V + forward voltage drop. For an average value of 0.3V forward voltage drop, this makes the positive clamping voltage to be 2.1V, the maximum tolereable ADC input voltage level.
 
 ### Testing the base cape digital pins
 For this test, I set GPIO 51 pin as output and GPIO 50 pin as input. I connected both pins using a jumper wire. Here are the results:
