@@ -328,6 +328,20 @@ Writing to UART4 2
 Writing to UART4 3
 ```
 
+Soon after performing the loopback UART test, I got my hands on a USB-serial breakout board so I decided to verify communication between Beaglebone Green and my host PC.
+
+![Serial communication between host and Beaglebone Green](images/serial_test.jpeg)
+
+On host PC
+``` bash
+sudo sh -c "echo Writing this from host > /dev/ttyUSB0 "
+```
+On device
+``` bash
+debian@beaglebone:~$ cat /dev/ttyO4
+Writing this from host
+```
+
 ### Testing the base cape ADC Pins
 #### Beaglebone Green base cape ADC protection
 Beaglebone Green has 8 channel 12-bit ADC module. The ref voltage for the ADC is set as 1.8V and ADC pins are very sensitive to over-voltage and can easily be damaged if the input voltage exceeds the safe limits.
