@@ -11,6 +11,10 @@ For this Roadtest, I will be exploring the Beaglebone Green, as a platform for a
 
 The end goal is to develop a Beaglebone Green based platform for controlling a 12-DOF Hexabot robot. The robot has been developed by one of my ex-colleagues and is using Arduino core running on ESP-WROOM-32 micocontroller. It has a 3D-printed body with 6 legs and each leg has 2 servo motor joints. The decision to replace it with Beaglebone Green is based on two premises, first I want to use ROS to control the robot and add advanced functionality and secondly, controlling and generating the gait patterns for all six legs requires the precise and synchronized timing of control signals, where I think PRU would come in handy. The ability to use Grove modules would also make it easier for adding additional hardware modules.
 
+Below is the image of the hexabot robot in it's current state for reference.
+
+![The Hexapod](images/robot.jpeg)
+
 ## Boot time
 To power up the Beaglebone Green, I connected it to my laptop running the Ubuntu 18.04 , by the provided USB cable. I noticed a significant delay, from when the POWER and STATUS LEDs started blinking up to when the board was accessible over USB.
 
@@ -464,3 +468,18 @@ debian@beaglebone:~$ sudo sh -c "echo 1 > /sys/class/pwm/pwmchip8/pwm0/enable"
 Below is the image of PWM signal measured on channel 1. As expected, with 50% duty cycle and voltage selector switch on base cape set to 5V, the measured voltage is 2.5V.
 
 ![PWM Signal](images/pwm_signal.jpeg)
+
+## ROS installation
+While looking for instructions on installing ROS on Beagebone Green debian, I found out that currently there are three options for enabling ROS on Beaglebone:
+
+1. Run Ubuntu distribution on Beaglebone Green and then install the compatible ROS packages.
+2. Run the Angstrom distribution on Beaglebone Green and then add additional ROS packages.
+3. Compile the ROS from source code, either on Beaglebone Green itself (takes longer) or using a cross-compiler running on host.
+
+**Note: Although the ROS package has precompiled binaries for debian distribution but they don't support "*"armhf"* architecture as of now. See http://wiki.ros.org/kinetic/Installation/Debian**
+
+The first 2 options require replacing the default debian distribution of the Beaglebone Green and it might break some functionality. Therefore, I decided to compile the ROS from source.
+
+I tried cross-compiling the ROS from sources first, as it should be way faster than compiling on the Beaglebone but unfortunately, I couldn't finish the cross-compilation as some packages were broken.
+
+Therefore, I tried to compile ROS directly on the Beaglebone itself. For compilation instructions, I have taken help from https://machinekoder.com/ros-with-debian-stretch-on-the-beaglebone-black-green-blue/.
