@@ -65,9 +65,9 @@ For instance, I could find out the current limits of power pins in the Beaglebon
 
 For most users, these details might be irrelevant, but still it is better to be aware of these limits if someone is designing a custom cape or using too much power. In the absence of 5V DC Jack, the only way to reach the higher current VDD_5V pins is through P9 extension header, which is not very convenient and safe per se.
 
-Finally, the PMIC on Beaglebone Green can support Lithium battery based operation, including the battery charging. Infact, there are some unpopulated pins on both Beaglebone Black and Green boards, that can be used for direct Lithium battery based operation but I couldn't find any official word on it. There are certain hacks available online for powering the beaglebone black directly from Lithium battery https://www.element14.com/community/community/designcenter/single-board-computers/next-gen_beaglebone//blog/2013/08/10/bbb--rechargeable-on-board-battery-system but I am not sure how safe or relevant it is to Beaglebone Green. I will experiment more on this in future.
+Finally, the PMIC on Beaglebone Green can support Lithium battery based operation, including the battery charging. Infact, there are some unpopulated pins on both Beaglebone Black and Green boards, that can be used for direct Lithium battery based operation but I couldn't find any official word on it. There are certain [hacks available for powering the beaglebone black directly from Lithium battery](https://www.element14.com/community/community/designcenter/single-board-computers/next-gen_beaglebone//blog/2013/08/10/bbb--rechargeable-on-board-battery-system) but I am not sure how safe or relevant it is to Beaglebone Green. I will experiment more on this in future.
 
-For my project, I decided to power the board from micro USB port. For that, I ordered a USB Micro-B DIY connector shell from Adafruit https://www.adafruit.com/product/1390 to create a custom USB cable for powering the beaglebone green from Lithium battery over the micro USB connector.
+For my project, I decided to power the board from micro USB port. For that, I ordered a [USB Micro-B DIY connector shell from Adafruit](https://www.adafruit.com/product/1390) to create a custom USB cable for powering the beaglebone green from Lithium battery over the micro USB connector.
 
 ![Custom usb Power cable](images/custom_usb_power_cable.jpeg)
 
@@ -135,7 +135,7 @@ rtt min/avg/max/mdev = 4.794/5.605/6.137/0.501 ms
 ```
 
 ### Grove system
-Before going further, I would like to have just a quick word on Grove system. It is a prototyping system, similar to Beaglonebone capes, that uses a standardized wire connector for interfacing with a large set of Grove modules. This is supposed to make prototyping easier and flexible. For more details and list of available Grove modules, you can visit http://wiki.seeedstudio.com/Grove/.
+Before going further, I would like to have just a quick word on Grove system. It is a prototyping system, similar to Beaglonebone capes, that uses a standardized wire connector for interfacing with a large set of Grove modules. This is supposed to make prototyping easier and flexible. For more details and list of available Grove modules, you can visit [the seeedstudio website](http://wiki.seeedstudio.com/Grove/).
 
 **At this point, it is worth mentioning that although all Grove modules have the same Grove connector, it can have different types of electrical signals.** The Grove ports come in below four types:
 
@@ -154,7 +154,7 @@ Therefore while selecting Grove modules, care must be taken to make sure the cor
 
 **The Beaglebone Green main board has only I2C and UART Grove ports, hence it cannot interface with the digital and analog Grove modules.**
 
-Below is the snapshot of online shop for Grove modules (https://www.seeedstudio.com/category/Grove-c-1003.html) which has a nice collection of Grove modules, sufficient to serve most of the requirements.
+Below is the snapshot of [online shop for Grove modules](https://www.seeedstudio.com/category/Grove-c-1003.html) which has a nice collection of Grove modules, sufficient to serve most of the requirements.
 
 ![Grove modules](images/grove_modules.png)
 
@@ -201,13 +201,13 @@ I was expecting to find the dtbo file named *BB-GREEN-GROVE-00A2.dtbo* under the
 
 I tried to access the usual slots sysfs interface file */sys/devices/platform/bone_capemgr/slots* but this file was absent as well.
 
-There is a lot of outdated information on this which becomes very confusing. Finally I came across this useful link https://elinux.org/Beagleboard:BeagleBoneBlack_Debian#U-Boot_Overlays which clarified that the old slots based mechanism for loading cape device tree overlays has been deprecated now.
+There is a lot of outdated information on this which becomes very confusing. Finally I came across this [useful link explaining a new overlay mechanism](https://elinux.org/Beagleboard:BeagleBoneBlack_Debian#U-Boot_Overlays) which clarified that the old slots based mechanism for loading cape device tree overlays has been deprecated now.
 
 From kernel version 4.4 onwards, the preferred method to load the cape device tree overlays is via u-boot.
 
 Better yet, there is a new mechanism for configuring the each Beaglebone pin directly from shell, without loading any device tree fragment.
 
-This new feature is called Beaglebone Universal I/O https://github.com/cdsteinkuehler/beaglebone-universal-io. This is enabled by default and what it does is export all the unused GPIO pins and configure them into a default input mode.
+This new feature is called the [Beaglebone Universal I/O](https://github.com/cdsteinkuehler/beaglebone-universal-io). This is enabled by default and what it does is export all the unused GPIO pins and configure them into a default input mode.
 
 #### Using the Beaglebone Universal I/O
 Before using the Beaglebone Universal I/O mechanism, it is worth mentioning that it works on the Beaglebone pin addressing scheme.
@@ -473,7 +473,7 @@ The first 2 options require replacing the default debian distribution of the Bea
 
 I tried cross-compiling the ROS from sources first, as it should be way faster than compiling on the Beaglebone but unfortunately, I couldn't finish the cross-compilation as some packages were broken.
 
-Therefore, I tried to compile ROS directly on the Beaglebone itself. For compilation instructions, I have followed a very helpful link: https://machinekoder.com/ros-with-debian-stretch-on-the-beaglebone-black-green-blue/.
+Therefore, I tried to compile ROS directly on the Beaglebone itself. For compilation instructions, I have followed [a very helpful link](https://machinekoder.com/ros-with-debian-stretch-on-the-beaglebone-black-green-blue/).
 
 Below is the output of the successful compilation of ROS Kinetic package and it took around 100 minutes for compilation only (it also took a lot of time to install required packages for compilation). I will try to make cross-compilation of ROS work on Beaglebone in future and that might warrant another separate article.
 
@@ -489,7 +489,7 @@ debian@beaglebone:~/ros_catkin_ws$
 ```
 
 ## Setting up the PRU
-There was a time when using PRU on the Beaglebone was very complex. Now thanks to the recent developments, it's a breeze. I managed to find out a great artcile on running the PRU on Beaglebone https://www.element14.com/community/community/designcenter/single-board-computers/next-gen_beaglebone/blog/2019/05/14/coding-for-the-beaglebone-pru-with-c-in-2019 and I was able to follow it and get PRU running well under 30 minutes. Since the link mentioned has all the information, I will just post my results.
+There was a time when using PRU on the Beaglebone was very complex. Now thanks to the recent developments, it's a breeze. I managed to find out [a great artcile](https://www.element14.com/community/community/designcenter/single-board-computers/next-gen_beaglebone/blog/2019/05/14/coding-for-the-beaglebone-pru-with-c-in-2019) on running the PRU on Beaglebone and was able to follow it and get PRU running well under 30 minutes. Since the link mentioned has all the information, I will only write my results.
 
 ```bash
 debian@beaglebone:~$ # Place the compiled firmware in /lib/firmware
