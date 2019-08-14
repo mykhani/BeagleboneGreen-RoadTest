@@ -216,16 +216,9 @@ On Beaglebone, the pins are referenced by the their P8/P9 header name and positi
 
 For a complete reference on pin naming schemes and other details, these documents prepared by Derek Molloy are a complete comprehensive resources.
 
-<object data="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP8HeaderTable.pdf" type="application/pdf" width="700px" height="700px">
-    <embed src="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP8HeaderTable.pdf">
-        <p>Please download the PDF to view it: <a href="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP8HeaderTable.pdf">P8 Header Reference</a>.</p>
-    </embed>
-</object>
-<object data="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP9HeaderTable.pdf" type="application/pdf" width="700px" height="700px">
-    <embed src="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP9HeaderTable.pdf">
-        <p>Please download the PDF to view it: <a href="https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP9HeaderTable.pdf">P9 Header Reference</a>.</p>
-    </embed>
-</object>
+P8 header: https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP8HeaderTable.pdf
+
+P9 header: https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP9HeaderTable.pdf
 
 The list of pins available on the Grove base cape is given below:
 * GPIO_15 / UART1_TXD
@@ -572,4 +565,4 @@ I personally found the Grove system to be very convenient. The physical connecti
 
 And their might a little confusion about the Grove interface itself as well because at first, it seems like all Grove components can be connected to the Grove connector but in fact, Grove connector can have different underlying protocol so the Grove connector and Grove component should be matched carefully.
 
-All in all, it is a good cheaper alternative to Beaglebone Black. I would like to see improvement in the power interface, especially on making it battery operated out-of-the box so that it can be easily deployed in field or battery powered applications. With the base platform set, now I can work on to implementing the Hexabot software. 
+All in all, it is a good cheaper alternative to Beaglebone Black. I would like to see improvement in the power interface, especially on making it battery operated out-of-the box so that it can be easily deployed in field or battery powered applications. With the base platform set, now I can work on to implementing the Hexabot software.
