@@ -216,9 +216,9 @@ On Beaglebone, the pins are referenced by the their P8/P9 header name and positi
 
 For a complete reference on pin naming schemes and other details, these documents prepared by Derek Molloy are a complete comprehensive resources.
 
-P8 header: https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP8HeaderTable.pdf
+[P8 header reference](https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP8HeaderTable.pdf)
 
-P9 header: https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP9HeaderTable.pdf
+[P9 header reference](https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP9HeaderTable.pdf)
 
 The list of pins available on the Grove base cape is given below:
 * GPIO_15 / UART1_TXD
