@@ -169,7 +169,7 @@ In addition, it also has a 3.3 – 5V voltage level selection switch, which allo
 
 The following figure shows the voltage level conversion schematics.
 
-![Voltage protection](images/voltage_level_switch.png)
+![Voltage protection](images/voltage_level_switch.jpg)
 
 The VDD_G level in above schematics can be selected between 3.3 or 5V using a slider switch on the base cape.
 
@@ -292,7 +292,7 @@ debian@beaglebone:~$ dmesg | grep tty
 ```
 Consulting the *"Memory Map"* section of AM335x TRM, I found that the UARt4 base register is 481a8000. Hence, */dev/ttyS4* corresponds to UART4. I found this out later, after I had used */dev/ttyO4* for UART4 testing but I have verified and the commands works the same if */dev/ttyS4* is used instead of */dev/ttyO4*.
 
-![UART4 base register](images/uart4_base_register.png)
+![UART4 base register](images/uart4_base_register.jpg)
 
 Disable the serial getty running service on UART4 port
 
@@ -511,7 +511,7 @@ Unfortunately I didn't have access to oscilloscope to actually see the toggle si
 
 Still, I decided to build PRU UART example and see if I can get some data on UART1 from PRU. I built the project *PRU_Hardware_UART" from *pru-software-support-package* examples. The example source runs in loopback mode where the UART signals are not exposed on the pins and TX data is routed internally to RX. Therefore, the default example project doesn't allow to observe the UART signals. Therefore I build the example project after disabling the UART loopback mode.
 
-![PRU UART](images/pru_uart.png)
+![PRU UART](images/pru_uart.jpg)
 
 I attached the Beaglebone to my host PC using a USB-serial adapter, connected to the UART1 port on the base cape, and started minicom to receive data from Beaglebone's PRU.
 
