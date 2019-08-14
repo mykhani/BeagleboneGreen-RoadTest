@@ -593,7 +593,7 @@ The PRU UART firmware writes a character from the string **"Hello!"** to the UAR
 The successful execution of PRU UART example verified that the PRU development environment has been set correctly and it is now ready for PRU application development.
 
 ## Conclusion
-At the end of this roadtest, I have managed to setup all the building blocks required to build a platform for ROS based robotics development on Beaglebone Green. The Beaglebone Green is essentially the same as Beaglebone Black. This can be a huge plus and also a source of great confusion, because there is too much documentation and community support available that's outdated now.
+At the end of this roadtest, I have managed to setup all the building blocks required, to build a platform for ROS based robotics development on Beaglebone Green. The Beaglebone Green is essentially the same as Beaglebone Black. This can be a huge plus and also a source of great confusion, because there is too much documentation and community support available that's outdated now.
 
 The decision to rely on Linux kernel's interfaces for controlling the hardware instead of using the Cloud9 IDE or Bonescript was done because first, I wanted to have the least abstraction and full-control over the system, and secondly, it will be easier and faster to develop ROS applications, that can access the hardware using Linux Kernel's native interfaces.
 
