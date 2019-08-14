@@ -52,6 +52,10 @@ And here's the image of final power section.
 
 ![Power system](images/power_setup.jpeg)
 
+And here is the complete test setup.
+
+![Test Setup](images/final_setup.jpeg)
+
 ### 1.1 Boot time
 When the Beaglebone Green is powered by connecting to my host PC using the USB cable, I noticed a significant delay, from when the POWER and STATUS LEDs started blinking up to when the board was accessible over USB.
 
@@ -478,6 +482,10 @@ debian@beaglebone:~$ sudo sh -c "echo 1 > /sys/class/pwm/pwmchip8/pwm0/enable"
 Below is the image of PWM signal measured on channel 1. As expected, with 50% duty cycle and voltage selector switch on base cape set to 5V, the measured voltage is 2.5V.
 
 ![PWM Signal](images/pwm_signal.jpeg)
+
+Finally, I connected 2 continuous servos to the PWM driver. See the result below.
+
+![Servos in action](images/servos_in_action.gif)
 
 ## 6. ROS
 ROS is an integral part of the modern robotic systems. It provides the software infrastructure to develop complex robotic applications and provides the implementation of most of the robotic functionality including sensor interfacing, communication, navigation, mapping and simulation.
