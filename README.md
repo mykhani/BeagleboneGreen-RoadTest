@@ -277,7 +277,7 @@ Short the pins 11 and 13 of P9 header so that Beaglebone can talk to itself in a
 
 ![UART4 loopback](images/uart_loopback.jpeg)
 
-Disable the serial getty service running on UART4 port. This service is resposible for showing the login prompt if a connection is made on UART4. In my experience, it might interfere with manual UART4 testing so it is better to disable it so that it doesn't try to access UART4. But first we need to find the tty* device file that corresponds to UART4. From the online documentation, I could easily find that it is /dev/ttyO4. However, there is another method of find this out from the boot logs iteself. After the Beaglebone has booted, run the below command to list down the detected UART ports.
+Disable the serial getty service running on UART4 port. This service is responsible for showing the login prompt if a connection is made on UART4. In my experience, it might interfere with manual UART4 testing so it is better to disable it so that it doesn't try to access UART4. But first we need to find the tty* device file that corresponds to UART4. From the online documentation, I could easily find that it is /dev/ttyO4. However, there is another method of find this out from the boot logs iteself. After the Beaglebone has booted, run the below command to list down the detected UART ports.
 
 ```bash
 debian@beaglebone:~$ dmesg | grep tty
