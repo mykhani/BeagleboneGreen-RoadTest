@@ -1,5 +1,6 @@
 # Beaglebone Green Roadtest
-### Overview
+
+## Overview
 The Beaglebone Green is compatible with the Beaglebone Black. This means that it can benefit from the existing online resources, documentation and community support for Beaglebone black. The only difference is that the HDMI connector has been replaced by two “Grove ports” and the 5V DC barrel jack has been removed. Apart from these hardware changes for lowering the price, the addition of Grove ports is a nice feature that enables interfacing with a large set of components from the Grove ecosystem.
 
 This makes it ideal for headless embedded projects, where an HDMI display is not required. It is also very easy to connect and access the Beaglebone Green over the USB ethernet and serial console out of the box. The default interface is a web based HTTP server, accessible over USB ethernet. It has a nice collection of documentation, libraries and demo snippets and can be used to quickly write programs to control the LEDs other hardware.
@@ -15,7 +16,7 @@ Below is the image of the hexabot robot in it's current state for reference.
 
 ![The Hexapod](images/robot.jpeg)
 
-## Boot time
+### Boot time
 To power up the Beaglebone Green, I connected it to my laptop running the Ubuntu 18.04 , by the provided USB cable. I noticed a significant delay, from when the POWER and STATUS LEDs started blinking up to when the board was accessible over USB.
 
 To get a rough of estimate of this delay/boot time, I decided to measure the time from when it is powered up to it's detection as a USB device. I executed the below command after plugging in the Beaglebone Green and started watching the USB bus for device detection. As soon the device was detected, I killed the command and noted the time measured. I tried it 3 times and the average boot time comes out to be 51 seconds, which is surprisingly high.
@@ -51,7 +52,8 @@ real	0m51.350s
 user	0m2.661s
 sys	0m0.213s
 ```
-## Powering the board
+
+### Powering up the board
 The robot needs to operate from the battery. Morever, not all projects can be tethered to a PC by a USB cable. Therefore, I tried to explore powering the Beaglebone Green by other sources. Unfortunately, with the absence of 5V DC Jack and lack of documentation, it is bit tricky. For instance, the Beaglebone Green mentions that the board can be powered from three sources;
 
 1. The USB port.
@@ -77,7 +79,7 @@ And here's the image of final power section.
 
 ![Power system](images/power_setup.jpeg)
 
-## Sharing the internet over USB Ethernet
+### Sharing the internet over USB Ethernet
 On host pc, find out the USB ethernet interface of the Beaglebone Green. It will be the interface with IP address *192.168.7.1*. Note down the name of this interface *enx3403de6337b1* as it will be used to setup IP packet forwarding to enable internet access. Also note down the host interface connected to the internet which is wlp1s0 in this case.
 ```bash
 test@HardwareTestPC:~$ ifconfig
@@ -132,7 +134,7 @@ PING www.google.com (216.58.200.68) 56(84) bytes of data.
 rtt min/avg/max/mdev = 4.794/5.605/6.137/0.501 ms
 ```
 
-## Grove system
+### Grove system
 Before going further, I would like to have just a quick word on Grove system. It is a prototyping system, similar to Beaglonebone capes, that uses a standardized wire connector for interfacing with a large set of Grove modules. This is supposed to make prototyping easier and flexible. For more details and list of available Grove modules, you can visit http://wiki.seeedstudio.com/Grove/.
 
 **At this point, it is worth mentioning that although all Grove modules have the same Grove connector, it can have different types of electrical signals.** The Grove ports come in below four types:
@@ -156,7 +158,7 @@ Below is the snapshot of online shop for Grove modules (https://www.seeedstudio.
 
 ![Grove modules](images/grove_modules.png)
 
-## Grove base cape - connectivity platform
+### Grove base cape - connectivity platform
 The Beaglebone Grove base cape forms the base shield, to which other Grove modules can be easily attached. It provides multiple Grove ports, and can be used to attach all types of available Grove modules.
 
 ![Grove base cape](images/grove_base_cape.jpeg)
@@ -177,7 +179,7 @@ In addition to base cape, I also ordered the Grove I2C hub, which allows connect
 
 ![Grove I2C Hub](images/grove_i2c_hub.jpeg)
 
-### Using the Grove base cape in Linux
+#### Using the Grove base cape in Linux
 Admittedly it has been a while since I have worked with Beaglebone. The last time I worked with Beaglebone Black, it was running Linux kernel version 3.8 and had a Capemanager mechanism to load the device tree overlays to enable and configure capes. The kernel version on Beaglebone Green is 4.9, and a lot has changed regarding how capes are handled.
 
 I was expecting the same Beaglebone Capemanager interface to load the device tree overlay for the Grove base cape. I tried dumping the contents of the Grove base cape EEPROM to find the part number and revision, which is supposed to load the correct device tree overlay fragment (dtbo) for the Grove base cape.
@@ -207,7 +209,7 @@ Better yet, there is a new mechanism for configuring the each Beaglebone pin dir
 
 This new feature is called Beaglebone Universal I/O https://github.com/cdsteinkuehler/beaglebone-universal-io. This is enabled by default and what it does is export all the unused GPIO pins and configure them into a default input mode.
 
-### Using the Beaglebone Universal I/O
+#### Using the Beaglebone Universal I/O
 Before using the Beaglebone Universal I/O mechanism, it is worth mentioning that it works on the Beaglebone pin addressing scheme.
 
 On Beaglebone, the pins are referenced by the their P8/P9 header name and position. For example, GPIO pin 115 is referenced as P9_27.
@@ -295,7 +297,6 @@ debian@beaglebone:~$ dmesg | grep tty
 [    1.530982] 481a8000.serial: ttyS4 at MMIO 0x481a8000 (irq = 161, base_baud = 3000000) is a 8250
 [    1.531827] 481aa000.serial: ttyS5 at MMIO 0x481aa000 (irq = 162, base_baud = 3000000) is a 8250
 ```
-
 Consulting the *"Memory Map"* section of AM335x TRM, I found that the UARt4 base register is 481a8000. Hence, */dev/ttyS4* corresponds to UART4. I found this out later, after I had used */dev/ttyO4* for UART4 testing but I have verified and the commands works the same if */dev/ttyS4* is used instead of */dev/ttyO4*.
 
 ![UART4 base register](images/uart4_base_register.png)
@@ -306,13 +307,10 @@ Disable the serial getty running service on UART4 port
 debian@beaglebone:~$ sudo systemctl disable serial-getty@ttyO4
 
 ```
-
 Configure the serial port.
-
 ```bash
 debian@beaglebone:~$ # configure the serial port
 debian@beaglebone:~$ stty -F /dev/ttyO4 115200 cs8 -cstopb -parenb
-
 ```
 In one terminal, start reading the UART4 device file while in other, start writing to the UART4 device file.
 ```bash
@@ -418,7 +416,7 @@ debian@beaglebone:~$ # Read the state of GPIO 50
 debian@beaglebone:~$ config-pin -q P9_14
 P9_14 Mode: gpio Direction: in Value: 0
 ```
-## Grove 16-channel servo controller
+### Grove 16-channel servo controller
 The hexabot has 2-DOF for each leg. In simple words, each leg consists of 2 servo joints. Thus, I needed to control 12 servo motors. I searched for a suitable Grove module in the actuator category and soon enough, I found an I2C based PCA9685 16 channel PWM driver Grove module. This will allow me to control upto 16 servos by generating maximum 16 PWM signals.
 
 ![PCA9685](images/pca9685.jpeg)
@@ -482,4 +480,96 @@ The first 2 options require replacing the default debian distribution of the Bea
 
 I tried cross-compiling the ROS from sources first, as it should be way faster than compiling on the Beaglebone but unfortunately, I couldn't finish the cross-compilation as some packages were broken.
 
-Therefore, I tried to compile ROS directly on the Beaglebone itself. For compilation instructions, I have taken help from https://machinekoder.com/ros-with-debian-stretch-on-the-beaglebone-black-green-blue/.
+Therefore, I tried to compile ROS directly on the Beaglebone itself. For compilation instructions, I have followed a very helpful link: https://machinekoder.com/ros-with-debian-stretch-on-the-beaglebone-black-green-blue/.
+
+Below is the output of the successful compilation of ROS Kinetic package and it took around 100 minutes for compilation only (it also took a lot of time to install required packages for compilation). I will try to make cross-compilation of ROS work on Beaglebone in future and that might warrant another separate article.
+
+```bash
+debian@beaglebone:~/ros_catkin_ws$ time sudo ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release --install-space /opt/ros/kinetic
+...
+<== Finished processing package [51 of 51]: 'rosbag'
+
+real	100m51.922s
+user	88m5.769s
+sys	10m46.704s
+debian@beaglebone:~/ros_catkin_ws$
+```
+
+## Setting up the PRU
+There was a time when using PRU on the Beaglebone was very complex. Now thanks to the recent developments, it's a breeze. I managed to find out a great artcile on running the PRU on Beaglebone https://www.element14.com/community/community/designcenter/single-board-computers/next-gen_beaglebone/blog/2019/05/14/coding-for-the-beaglebone-pru-with-c-in-2019 and I was able to follow it and get PRU running well under 30 minutes. Since the link mentioned has all the information, I will just post my results.
+
+```bash
+debian@beaglebone:~$ # Place the compiled firmware in /lib/firmware
+debian@beaglebone:~$ sudo mv toggle_led.out /lib/firmware/toggle_led
+
+debian@beaglebone:~$ # Set the name of PRU1 firmware name (file in lib/firmware)
+debian@beaglebone:~$ sudo sh -c "echo toggle_led > /sys/class/remoteproc/remoteproc1/firmware"
+
+debian@beaglebone:~$ # Start the PRU1
+debian@beaglebone:~$ sudo sh -c "echo start > /sys/class/remoteproc/remoteproc1/state"
+
+debian@beaglebone:~$ # Verify that PRU1 has started
+debian@beaglebone:~$ dmesg | tail -n 3
+[ 2671.764918] remoteproc remoteproc1: powering up 4a334000.pru
+[ 2671.767913] remoteproc remoteproc1: Booting fw image toggle_led, size 31812
+[ 2671.767956] remoteproc remoteproc1: remote processor 4a334000.pru is now up
+```
+Unfortunately I didn't have access to oscilloscope to actually see the toggle signal generated by PRU bu I got no erros which means it's all good.
+
+Still, I decided to build PRU UART example and see if I can get some data on UART1 from PRU. I built the project *PRU_Hardware_UART" from *pru-software-support-package* examples. The example source runs in loopback mode where the UART signals are not exposed on the pins and TX data is routed internally to RX. Therefore, the default example project doesn't allow to observe the UART signals. Therefore I build the example project after disabling the UART loopback mode.
+
+![PRU UART](images/pru_uart.png)
+
+I attached the Beaglebone to my host PC using a USB-serial adapter, connected to the UART1 port on the base cape, and started minicom to receive data from Beaglebone's PRU.
+
+Below are the commands for loading the UART test PRU firmware.
+```bash
+debian@beaglebone:~$ # config UART1 pins
+debian@beaglebone:~$ config-pin -l P9_24
+debian@beaglebone:~$ config-pin P9_24 pru_uart
+
+debian@beaglebone:~$ config-pin -l P9_26
+debian@beaglebone:~$ config-pin P9_26 pru_uart
+debian@beaglebone:~$ # Stop the PRU1
+debian@beaglebone:~$ sudo sh -c "echo stop > /sys/class/remoteproc/remoteproc1/state"
+
+debian@beaglebone:~$ # Verify that PRU1 has stopped
+debian@beaglebone:~$ dmesg | tail -n 4
+[ 2671.764918] remoteproc remoteproc1: powering up 4a334000.pru
+[ 2671.767913] remoteproc remoteproc1: Booting fw image toggle_led, size 31812
+[ 2671.767956] remoteproc remoteproc1: remote processor 4a334000.pru is now up
+[ 4849.567695] remoteproc remoteproc1: stopped remote processor 4a334000.pru
+
+debian@beaglebone:~$ # Place the PRU UART example firmware in /lib/firmware
+debian@beaglebone:~$ sudo mv PRU_Hardware_UART.out /lib/firmware/PRU_Hardware_UART
+
+debian@beaglebone:~$ # Load the firmware name to PRU1
+debian@beaglebone:~$ sudo sh -c "echo PRU_Hardware_UART > /sys/class/remoteproc/remoteproc1/firmware"
+
+debian@beaglebone:~$ # Start the PRU
+debian@beaglebone:~$ sudo sh -c "echo start > /sys/class/remoteproc/remoteproc1/state"
+
+debian@beaglebone:~$ # Verify that PRU is up
+debian@beaglebone:~$ dmesg | tail -n 6
+[ 2671.767913] remoteproc remoteproc1: Booting fw image toggle_led, size 31812
+[ 2671.767956] remoteproc remoteproc1: remote processor 4a334000.pru is now up
+[ 4849.567695] remoteproc remoteproc1: stopped remote processor 4a334000.pru
+[ 6258.333177] remoteproc remoteproc1: powering up 4a334000.pru
+[ 6258.333498] remoteproc remoteproc1: Booting fw image PRU_Hardware_UART, size 32572
+[ 6258.333542] remoteproc remoteproc1: remote processor 4a334000.pru is now up
+```
+
+The PRU UART firmware writes a character from the string **"Hello!"** to the UART TX, and then it waits to receive a character from host, before sending more data. It doesn't matter what the host sends back i.e. it can be any character. But the host must send something in order for the PRU firmware to proceed.
+
+The successful execution of PRU UART example verified that the PRU development environment has been set correctly and it is now ready for PRU application development.
+
+## Conclusion
+At the end of this roadtest, I have managed to setup all the building blocks required to build a platform for ROS based robotics development on Beaglebone Green. The Beaglebone Green is essentially the same as Beaglebone Black. This can be a huge plus and also a source of great confusion, because there is too much documentation and community support available that's outdated now.
+
+The decision to rely on Linux kernel's interfaces for controlling the hardware instead of using the Cloud9 IDE or Bonescript was done because first, I wanted to have the least abstraction and full-control over the system, and secondly, it will be easier to develop ROS applications that can access the hardware using Kernel's native interfaces and that should be faster as well.
+
+I personally found the Grove system to be very convenient. The physical connection of the connector is quite solid and there are adapter cables like Grove-connector-to-female-header cable that allow to interface with non-Grove components as well. And there is a good number of Grove components available as well. However, to benefit from the whole range of Grove sensors, I think the Beaglebone Green Grove base cape is a must have add-on. The Grove connectors on the Beaglebone Green board itself cannot support all of Grove sensors and modules, specifically the ones with  Digital and Analog I/O.
+
+And their might a little confusion about the Grove interface itself as well because at first, it seems like all Grove components can be connected to the Grove connector but in fact, Grove connector can have different underlying protocol so the Grove connector and Grove component should be matched carefully.
+
+All in all, it is a good cheaper alternative to Beaglebone Black. I would like to see improvement in the power interface, especially on making it battery operated out-of-the box so that it can be easily deployed in field or battery powered applications. With the base platform set, now I can work on to implementing the Hexabot software. 
