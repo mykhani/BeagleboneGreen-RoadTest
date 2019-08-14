@@ -1,5 +1,6 @@
 # Beaglebone Green Roadtest
-### Overview
+
+## Overview
 The Beaglebone Green is compatible with the Beaglebone Black. This means that it can benefit from the existing online resources, documentation and community support for Beaglebone black. The only difference is that the HDMI connector has been replaced by two “Grove ports” and the 5V DC barrel jack has been removed. Apart from these hardware changes for lowering the price, the addition of Grove ports is a nice feature that enables interfacing with a large set of components from the Grove ecosystem.
 
 This makes it ideal for headless embedded projects, where an HDMI display is not required. It is also very easy to connect and access the Beaglebone Green over the USB ethernet and serial console out of the box. The default interface is a web based HTTP server, accessible over USB ethernet. It has a nice collection of documentation, libraries and demo snippets and can be used to quickly write programs to control the LEDs other hardware.
@@ -51,6 +52,7 @@ real	0m51.350s
 user	0m2.661s
 sys	0m0.213s
 ```
+
 ## Powering the board
 The robot needs to operate from the battery. Morever, not all projects can be tethered to a PC by a USB cable. Therefore, I tried to explore powering the Beaglebone Green by other sources. Unfortunately, with the absence of 5V DC Jack and lack of documentation, it is bit tricky. For instance, the Beaglebone Green mentions that the board can be powered from three sources;
 
@@ -295,7 +297,6 @@ debian@beaglebone:~$ dmesg | grep tty
 [    1.530982] 481a8000.serial: ttyS4 at MMIO 0x481a8000 (irq = 161, base_baud = 3000000) is a 8250
 [    1.531827] 481aa000.serial: ttyS5 at MMIO 0x481aa000 (irq = 162, base_baud = 3000000) is a 8250
 ```
-
 Consulting the *"Memory Map"* section of AM335x TRM, I found that the UARt4 base register is 481a8000. Hence, */dev/ttyS4* corresponds to UART4. I found this out later, after I had used */dev/ttyO4* for UART4 testing but I have verified and the commands works the same if */dev/ttyS4* is used instead of */dev/ttyO4*.
 
 ![UART4 base register](images/uart4_base_register.png)
@@ -306,13 +307,10 @@ Disable the serial getty running service on UART4 port
 debian@beaglebone:~$ sudo systemctl disable serial-getty@ttyO4
 
 ```
-
 Configure the serial port.
-
 ```bash
 debian@beaglebone:~$ # configure the serial port
 debian@beaglebone:~$ stty -F /dev/ttyO4 115200 cs8 -cstopb -parenb
-
 ```
 In one terminal, start reading the UART4 device file while in other, start writing to the UART4 device file.
 ```bash
@@ -482,4 +480,19 @@ The first 2 options require replacing the default debian distribution of the Bea
 
 I tried cross-compiling the ROS from sources first, as it should be way faster than compiling on the Beaglebone but unfortunately, I couldn't finish the cross-compilation as some packages were broken.
 
-Therefore, I tried to compile ROS directly on the Beaglebone itself. For compilation instructions, I have taken help from https://machinekoder.com/ros-with-debian-stretch-on-the-beaglebone-black-green-blue/.
+Therefore, I tried to compile ROS directly on the Beaglebone itself. For compilation instructions, I have followed a very helpful link: https://machinekoder.com/ros-with-debian-stretch-on-the-beaglebone-black-green-blue/.
+
+Below is the output of the successful compilation of ROS Kinetic package and it took around 100 minutes for compilation only (it also took a lot of time to install required packages for compilation). I will try to make cross-compilation of ROS work on Beaglebone in future and that might warrant another separate article.
+
+```bash
+debian@beaglebone:~/ros_catkin_ws$ time sudo ./src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release --install-space /opt/ros/kinetic
+...
+<== Finished processing package [51 of 51]: 'rosbag'
+
+real	100m51.922s
+user	88m5.769s
+sys	10m46.704s
+debian@beaglebone:~/ros_catkin_ws$
+```
+
+## Setting up the PRU
