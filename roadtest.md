@@ -572,5 +572,4 @@ I personally found the Grove system to be very convenient. The physical connecti
 
 And their might a little confusion about the Grove interface itself as well because at first, it seems like all Grove components can be connected to the Grove connector but in fact, Grove connector can have different underlying protocol so the Grove connector and Grove component should be matched carefully.
 
-All in all, it is a good cheaper alternative to Beaglebone Black.
-With the base platform set, now I can work on implementing the Hexabot gait control software
+All in all, it is a good cheaper alternative to Beaglebone Black. I would like to see improvement in the power interface, especially on making it battery operated out-of-the box so that it can be easily deployed in field or battery powered applications. With the base platform set, now I can work on to implementing the Hexabot software. 
