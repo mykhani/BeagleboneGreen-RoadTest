@@ -16,8 +16,44 @@ Below is the image of the hexabot robot in it's current state for reference.
 
 ![The Hexapod](images/robot.jpeg)
 
-### Boot time
-To power up the Beaglebone Green, I connected it to my laptop running the Ubuntu 18.04 , by the provided USB cable. I noticed a significant delay, from when the POWER and STATUS LEDs started blinking up to when the board was accessible over USB.
+I will try to roadtest the Beaglebone Green by considering the use-case of developing a platform for Robotics development. As such, I will be testing on following aspects:
+
+1. Powering up the Beaglebone Green
+2. Connection between development host and Beaglebone Green
+3. Connecting the sensors (Grove system)
+4. Enabling and using Beaglebone capes
+5. Controlling the actuators
+6. ROS
+7. Real time capability
+
+## 1. Powering up the board
+The robot needs to operate from the battery. Morever, not all projects can be tethered to a PC by a USB cable. Therefore, I tried to explore powering the Beaglebone Green by other sources. Unfortunately, with the absence of 5V DC Jack and lack of documentation, it is bit tricky. For instance, the Beaglebone Green mentions that the board can be powered from three sources;
+
+1. The USB port.
+2. VDD_5V (Pins 5 and 6 of P9 header)
+
+Further more, it says that the USB port has been limited to max 500mA of current, and this limit can be increased by changing the setting of TPS65217C Power Management IC (PMIC), but the details are not mentioned regarding how to do so. It also says that if a cape or power hungry device is plugged in to the board, then more current could be derived from the VDD_5V pin, but it also fails to mention the current limit on VDD_5V pin. Overall, I found the power section of the Beaglebone Green SRM to be very limited and incomplete, as compared to the Beaglebone Black's SRM, which describes the power pins and their current limits in more detail.
+
+For instance, I could find out the current limits of power pins in the Beaglebone Black SRM. According to it, each VDD_5V pin can handle maximum 1A current while each SYS_5V pin (P9 pins 7 & 8) can handle 250mA max. Since the power circuit of both boards is same, I take that these limits are the same for Beaglebone Green as well.
+
+For most users, these details might be irrelevant, but still it is better to be aware of these limits if someone is designing a custom cape or using too much power. In the absence of 5V DC Jack, the only way to reach the higher current VDD_5V pins is through P9 extension header, which is not very convenient and safe per se.
+
+Finally, the PMIC on Beaglebone Green can support Lithium battery based operation, including the battery charging. Infact, there are some unpopulated pins on both Beaglebone Black and Green boards, that can be used for direct Lithium battery based operation but I couldn't find any official word on it. There are certain [hacks available for powering the beaglebone black directly from Lithium battery](https://www.element14.com/community/community/designcenter/single-board-computers/next-gen_beaglebone//blog/2013/08/10/bbb--rechargeable-on-board-battery-system) but I am not sure how safe or relevant it is to Beaglebone Green. I will experiment more on this in future.
+
+For my project, I decided to power the board from micro USB port. For that, I ordered a [USB Micro-B DIY connector shell from Adafruit](https://www.adafruit.com/product/1390) to create a custom USB cable for powering the beaglebone green from Lithium battery over the micro USB connector.
+
+![Custom usb Power cable](images/custom_usb_power_cable.jpeg)
+
+I decided to use 4 18650 3000mAh Lithium-ion batteries, in 2 series 2 parallel configuration for a total of 7.4 volts 6000mAh capacity for powering the board and servos. I prototyped a LM2596 switching regulator based power distribution circuit to generate 5V for board and servos. Each regulator can output max 3A of current.
+
+![Power distribution Circuit](images/voltage_regulator.jpeg)
+
+And here's the image of final power section.
+
+![Power system](images/power_setup.jpeg)
+
+### 1.1 Boot time
+When the Beaglebone Green is powered by connecting to my host PC using the USB cable, I noticed a significant delay, from when the POWER and STATUS LEDs started blinking up to when the board was accessible over USB.
 
 To get a rough of estimate of this delay/boot time, I decided to measure the time from when it is powered up to it's detection as a USB device. I executed the below command after plugging in the Beaglebone Green and started watching the USB bus for device detection. As soon the device was detected, I killed the command and noted the time measured. I tried it 3 times and the average boot time comes out to be 51 seconds, which is surprisingly high.
 
@@ -53,33 +89,10 @@ user	0m2.661s
 sys	0m0.213s
 ```
 
-### Powering up the board
-The robot needs to operate from the battery. Morever, not all projects can be tethered to a PC by a USB cable. Therefore, I tried to explore powering the Beaglebone Green by other sources. Unfortunately, with the absence of 5V DC Jack and lack of documentation, it is bit tricky. For instance, the Beaglebone Green mentions that the board can be powered from three sources;
+## 2. Connection between development host and Beaglebone Green
+For robotics based development, often the software would need to be cross-compiled on the development host PC and then transferred to the Beaglebone Green. This is because development on host PC is much faster than on resource constrained Beaglebone Green. The Beaglebone Green when connected to host over USB, creates a USB ethernet connection. This connection can be used to communicate between host and Beaglebone just like a normal ethernet connection. Morever, the internet connection of the host can also be shared with the Beaglebone, making it easier to install packages.
 
-1. The USB port.
-2. VDD_5V (Pins 5 and 6 of P9 header)
-
-Further more, it says that the USB port has been limited to max 500mA of current, and this limit can be increased by changing the setting of TPS65217C Power Management IC (PMIC), but the details are not mentioned regarding how to do so. It also says that if a cape or power hungry device is plugged in to the board, then more current could be derived from the VDD_5V pin, but it also fails to mention the current limit on VDD_5V pin. Overall, I found the power section of the Beaglebone Green SRM to be very limited and incomplete, as compared to the Beaglebone Black's SRM, which describes the power pins and their current limits in more detail.
-
-For instance, I could find out the current limits of power pins in the Beaglebone Black SRM. According to it, each VDD_5V pin can handle maximum 1A current while each SYS_5V pin (P9 pins 7 & 8) can handle 250mA max. Since the power circuit of both boards is same, I take that these limits are the same for Beaglebone Green as well.
-
-For most users, these details might be irrelevant, but still it is better to be aware of these limits if someone is designing a custom cape or using too much power. In the absence of 5V DC Jack, the only way to reach the higher current VDD_5V pins is through P9 extension header, which is not very convenient and safe per se.
-
-Finally, the PMIC on Beaglebone Green can support Lithium battery based operation, including the battery charging. Infact, there are some unpopulated pins on both Beaglebone Black and Green boards, that can be used for direct Lithium battery based operation but I couldn't find any official word on it. There are certain [hacks available for powering the beaglebone black directly from Lithium battery](https://www.element14.com/community/community/designcenter/single-board-computers/next-gen_beaglebone//blog/2013/08/10/bbb--rechargeable-on-board-battery-system) but I am not sure how safe or relevant it is to Beaglebone Green. I will experiment more on this in future.
-
-For my project, I decided to power the board from micro USB port. For that, I ordered a [USB Micro-B DIY connector shell from Adafruit](https://www.adafruit.com/product/1390) to create a custom USB cable for powering the beaglebone green from Lithium battery over the micro USB connector.
-
-![Custom usb Power cable](images/custom_usb_power_cable.jpeg)
-
-I decided to use 4 18650 3000mAh Lithium-ion batteries, in 2 series 2 parallel configuration for a total of 7.4 volts 6000mAh capacity for powering the board and servos. I prototyped a LM2596 switching regulator based power distribution circuit to generate 5V for board and servos. Each regulator can output max 3A of current.
-
-![Power distribution Circuit](images/voltage_regulator.jpeg)
-
-And here's the image of final power section.
-
-![Power system](images/power_setup.jpeg)
-
-### Sharing the internet over USB Ethernet
+### 2.1 Sharing the internet over USB Ethernet
 On host pc, find out the USB ethernet interface of the Beaglebone Green. It will be the interface with IP address *192.168.7.1*. Note down the name of this interface *enx3403de6337b1* as it will be used to setup IP packet forwarding to enable internet access. Also note down the host interface connected to the internet which is wlp1s0 in this case.
 ```bash
 test@HardwareTestPC:~$ ifconfig
@@ -134,7 +147,7 @@ PING www.google.com (216.58.200.68) 56(84) bytes of data.
 rtt min/avg/max/mdev = 4.794/5.605/6.137/0.501 ms
 ```
 
-### Grove system
+## 3. Connecting the sensors - Grove system
 Before going further, I would like to have just a quick word on Grove system. It is a prototyping system, similar to Beaglonebone capes, that uses a standardized wire connector for interfacing with a large set of Grove modules. This is supposed to make prototyping easier and flexible. For more details and list of available Grove modules, you can visit [the seeedstudio website](http://wiki.seeedstudio.com/Grove/).
 
 **At this point, it is worth mentioning that although all Grove modules have the same Grove connector, it can have different types of electrical signals.** The Grove ports come in below four types:
@@ -158,7 +171,10 @@ Below is the snapshot of [online shop for Grove modules](https://www.seeedstudio
 
 ![Grove modules](images/grove_modules.jpeg)
 
-### Grove base cape - connectivity platform
+## 4. Enabling and using Beaglebone capes
+Admittedly it has been a while since I have worked with Beaglebone. The last time I worked with Beaglebone Black, it was running Linux kernel version 3.8 and had a Capemanager mechanism to load the device tree overlays to enable and configure capes. The kernel version on Beaglebone Green is 4.9, and a lot has changed regarding how capes are handled, which we will see shortly.
+
+### 4.1 Grove base cape
 The Beaglebone Grove base cape forms the base shield, to which other Grove modules can be easily attached. It provides multiple Grove ports, and can be used to attach all types of available Grove modules.
 
 ![Grove base cape](images/grove_base_cape.jpeg)
@@ -179,10 +195,9 @@ In addition to base cape, I also ordered the Grove I2C hub, which allows connect
 
 ![Grove I2C Hub](images/grove_i2c_hub.jpeg)
 
-#### Using the Grove base cape in Linux
-Admittedly it has been a while since I have worked with Beaglebone. The last time I worked with Beaglebone Black, it was running Linux kernel version 3.8 and had a Capemanager mechanism to load the device tree overlays to enable and configure capes. The kernel version on Beaglebone Green is 4.9, and a lot has changed regarding how capes are handled.
-
-I was expecting the same Beaglebone Capemanager interface to load the device tree overlay for the Grove base cape. I tried dumping the contents of the Grove base cape EEPROM to find the part number and revision, which is supposed to load the correct device tree overlay fragment (dtbo) for the Grove base cape.
+### 4.2 Using the Grove base cape in Linux
+#### 4.2.1 The deprecated Capemanager interface
+As mentioned earlier, I was expecting the same Beaglebone Capemanager interface to load the device tree overlay for the Grove base cape. I tried dumping the contents of the Grove base cape EEPROM to find the part number and revision, which is supposed to load the correct device tree overlay fragment (dtbo) for the Grove base cape.
 
 ```bash
 debian@beaglebone:~$ sudo cat /sys/bus/i2c/devices/2-0054/eeprom | hexdump -C
@@ -209,7 +224,7 @@ Better yet, there is a new mechanism for configuring the each Beaglebone pin dir
 
 This new feature is called the [Beaglebone Universal I/O](https://github.com/cdsteinkuehler/beaglebone-universal-io). This is enabled by default and what it does is export all the unused GPIO pins and configure them into a default input mode.
 
-#### Using the Beaglebone Universal I/O
+#### 4.2.2 Using the new Beaglebone Universal I/O
 Before using the Beaglebone Universal I/O mechanism, it is worth mentioning that it works on the Beaglebone pin addressing scheme.
 
 On Beaglebone, the pins are referenced by the their P8/P9 header name and position. For example, GPIO pin 115 is referenced as P9_27.
@@ -255,7 +270,7 @@ The above output shows that GPIO 115 has been configured as input and is in the 
 
 Currently, the default state for all pins is gpio with pull-up/down resistor set to the reset default value, but this could change. This is same for all other pins.
 
-### Testing the base cape UART pins
+### 4.3 Testing the base cape UART pins
 The UART4 pins (GPIO_30 & GPIO_31) can be configured as below to set them in UART mode:
 ```bash
 debian@beaglebone:~$ # List the available pin modes
@@ -337,8 +352,8 @@ debian@beaglebone:~$ cat /dev/ttyO4
 Writing this from host
 ```
 
-### Testing the base cape ADC Pins
-#### Beaglebone Green base cape ADC protection
+### 4.4 Testing the base cape ADC Pins
+#### 4.4.1 Beaglebone Green base cape ADC protection
 Beaglebone Green has 8 channel 12-bit ADC module. The ref voltage for the ADC is set as 1.8V and ADC pins are very sensitive to over-voltage and can easily be damaged if the input voltage exceeds the safe limits.
 
 The absolute maxium rating for the ADC pin is described as -0.5V to 2.1V in the AM335x datasheet. Therefore, in most cases, it is better to protect the ADC inputs so that inputs do not exceed maximum limits.
@@ -351,7 +366,7 @@ The analog input from the Grove ADC port goes to a voltage divider circuit, and 
 
 I still don't get the why there are 1k resistors (R6, R10) in the feedback path, as per my understanding, these resistors should be connected between the output of op-amp and Beaglebone's analog pins as the only function they seem to have is limit the current going into the ADC pins when they are clamped. Anyways, it's been ages since I worked with op-amps at the hardware level so maybe I am missing something but still, all the ADC protection circuits I have found for Beaglebone Black has the current limiting resistor connected between the op-amp output and ADC input pins.   
 
-#### Reading the ADC pins
+#### 4.4.2 Reading the ADC pins
 The sysfs based interface for reading the ADC pins is shown below:
 ```bash
 debian@beaglebone:~$ ls -l /sys/bus/iio/devices/iio\:device0/
@@ -385,7 +400,7 @@ debian@beaglebone:~$ cat /sys/bus/iio/devices/iio\:device0/in_voltage0_raw
 ```
 The above raw 12‐bit (0‐4095) ADC value can be converted to the input voltage as (2756 / 4095 * 1.8) / 0.359 = 3.374 which is accurate as the VCC is selected as 3.3V using the voltage level selector switch on the base cape. Measuring the VCC voltage using multimeter shows 3.377V.
 
-### Testing the base cape digital pins
+### 4.5 Testing the base cape digital pins
 For this test, I set GPIO 51 pin as output and GPIO 50 pin as input. I connected both pins using a jumper wire. Here are the results:
 ```bash
 debian@beaglebone:~$ # Set GPIO 51 of base cape as output
@@ -409,7 +424,11 @@ debian@beaglebone:~$ # Read the state of GPIO 50
 debian@beaglebone:~$ config-pin -q P9_14
 P9_14 Mode: gpio Direction: in Value: 0
 ```
-### Grove 16-channel servo controller
+
+## 5. Controlling the actuators
+The Grove system has a separate category for actuator modules, which can be used to control various types of motors including DC and Servo motors.
+
+### 5.1 Grove 16-channel servo controller
 The hexabot has 2-DOF for each leg. In simple words, each leg consists of 2 servo joints. Thus, I needed to control 12 servo motors. I searched for a suitable Grove module in the actuator category and soon enough, I found an I2C based PCA9685 16 channel PWM driver Grove module. This will allow me to control upto 16 servos by generating maximum 16 PWM signals.
 
 ![PCA9685](images/pca9685.jpeg)
@@ -460,7 +479,10 @@ Below is the image of PWM signal measured on channel 1. As expected, with 50% du
 
 ![PWM Signal](images/pwm_signal.jpeg)
 
-## ROS installation
+## 6. ROS
+ROS is an integral part of the modern robotic systems. It provides the software infrastructure to develop complex robotic applications and provides the implementation of most of the robotic functionality including sensor interfacing, communication, navigation, mapping and simulation.
+
+### 6.1 Installing ROS on Beaglebone Green
 While looking for instructions on installing ROS on Beagebone Green debian, I found out that currently there are three options for enabling ROS on Beaglebone:
 
 1. Run Ubuntu distribution on Beaglebone Green and then install the compatible ROS packages.
@@ -488,7 +510,10 @@ sys	10m46.704s
 debian@beaglebone:~/ros_catkin_ws$
 ```
 
-## Setting up the PRU
+## 7. Real-time capabilities
+ROS is not a real-time framework, though it is possible to make use of the real-time capable PRU microcontrollers on the Beaglebone SoC for any real-time application requirement.
+
+### 7.1  Setting up the PRU
 There was a time when using PRU on the Beaglebone was very complex. Now thanks to the recent developments, it's a breeze. I managed to find out [a great artcile](https://www.element14.com/community/community/designcenter/single-board-computers/next-gen_beaglebone/blog/2019/05/14/coding-for-the-beaglebone-pru-with-c-in-2019) on running the PRU on Beaglebone and was able to follow it and get PRU running well under 30 minutes. Since the link mentioned has all the information, I will only write my results.
 
 ```bash
