@@ -156,7 +156,7 @@ Therefore while selecting Grove modules, care must be taken to make sure the cor
 
 Below is the snapshot of [online shop for Grove modules](https://www.seeedstudio.com/category/Grove-c-1003.html) which has a nice collection of Grove modules, sufficient to serve most of the requirements.
 
-![Grove modules](images/grove_modules.png)
+![Grove modules](images/grove_modules.jpeg)
 
 ### Grove base cape - connectivity platform
 The Beaglebone Grove base cape forms the base shield, to which other Grove modules can be easily attached. It provides multiple Grove ports, and can be used to attach all types of available Grove modules.
