@@ -3,7 +3,7 @@
 ## Overview
 The Beaglebone Green is compatible with the Beaglebone Black. This means that it can benefit from the existing online resources, documentation and community support for Beaglebone black. The only difference is that the HDMI connector has been replaced by two “Grove ports” and the 5V DC barrel jack has been removed. Apart from these hardware changes for lowering the price, the addition of Grove ports is a nice feature that enables interfacing with a large set of components from the Grove ecosystem.
 
-This makes it ideal for headless embedded projects, where an HDMI display is not required. It is also very easy to connect and access the Beaglebone Green over the USB ethernet and serial console out of the box. The default interface is a web based HTTP server, accessible over USB ethernet. It has a nice collection of documentation, libraries and demo snippets and can be used to quickly write programs to control the LEDs other hardware.
+This makes it ideal for headless embedded projects, where an HDMI display is not required. It is also very easy to connect and access the Beaglebone Green over the USB ethernet and serial console out of the box. The default interface is a web based HTTP server, accessible over USB ethernet. It has a nice collection of documentation, libraries and demo snippets and can be used to quickly write programs to control the LEDs and other hardware.
 
 The default programming environment is based on the Javascript based "Bonescript" library and Cloud9 IDE which allows writing programs in Javascript and Python using a web interface. However, having a background in low-level embedded software engineering, I prefer no abstraction and having the full control of the system. So my preferred interface is the commandline terminal of the Beaglebone Green and working with the shell directly. The terminal can be accessed in two ways after the target boots up; 1) by SSH'ing to the address 192.168.7.2 or 2) by connecting to the USB-serial port /dev/ttyACMO using a terminal emulator software.
 
@@ -27,9 +27,9 @@ I will try to roadtest the Beaglebone Green by considering the use-case of devel
 7. Real time capability
 
 ## 1. Powering up the board
-The robot needs to operate from the battery. Morever, not all projects can be tethered to a PC by a USB cable. Therefore, I tried to explore powering the Beaglebone Green by other sources. Unfortunately, with the absence of 5V DC Jack and lack of documentation, it is bit tricky. For instance, the Beaglebone Green mentions that the board can be powered from three sources;
+The robot needs to operate from the battery. Morever, not all projects can be tethered to a PC by a USB cable. Therefore, I tried to explore powering the Beaglebone Green by other sources. Unfortunately, with the absence of 5V DC Jack and lack of documentation, it is bit tricky. For instance, the Beaglebone Green mentions that the board can be powered from two sources;
 
-1. The USB port.
+1. The micro USB port.
 2. VDD_5V (Pins 5 and 6 of P9 header)
 
 Further more, it says that the USB port has been limited to max 500mA of current, and this limit can be increased by changing the setting of TPS65217C Power Management IC (PMIC), but the details are not mentioned regarding how to do so. It also says that if a cape or power hungry device is plugged in to the board, then more current could be derived from the VDD_5V pin, but it also fails to mention the current limit on VDD_5V pin. Overall, I found the power section of the Beaglebone Green SRM to be very limited and incomplete, as compared to the Beaglebone Black's SRM, which describes the power pins and their current limits in more detail.
@@ -57,11 +57,11 @@ And here is the complete test setup.
 ![Test Setup](images/final_setup.jpeg)
 
 ### 1.1 Boot time
-When the Beaglebone Green is powered by connecting to my host PC using the USB cable, I noticed a significant delay, from when the POWER and STATUS LEDs started blinking up to when the board was accessible over USB.
+When the Beaglebone Green was powered by connecting to my host PC using the USB cable, I noticed a significant boot delay, from when the POWER and STATUS LEDs started blinking up to when the board was accessible over USB.
 
-To get a rough of estimate of this delay/boot time, I decided to measure the time from when it is powered up to it's detection as a USB device. I executed the below command after plugging in the Beaglebone Green and started watching the USB bus for device detection. As soon the device was detected, I killed the command and noted the time measured. I tried it 3 times and the average boot time comes out to be 51 seconds, which is surprisingly high.
+In order to get a rough estimate of this boot delay, I decided to measure the time from when it is powered up to it's detection as a USB device. I executed the below command after plugging in the Beaglebone Green and started watching the USB bus for device detection. As soon the device was detected, I killed the command and noted the time measured. I tried it 3 times and the average boot time comes out to be 51 seconds, which is surprisingly high.
 
-Unfortunately, the console over USB is not available till the device is detected so there is no way of seeing what happens during the boot. My guess is that it might be waiting for Ethernet connection during boot and since the Ethernet cable is not plugged in, the delay must be due to a time out.
+Unfortunately, the console over USB is not available till the Beaglebone is detected as a USB device. Therefore, there is no way of seeing what happens during the boot. My guess is that it might be waiting for Ethernet connection during boot and since the Ethernet cable is not plugged in, the delay must be due to a time out.
 
 Anyways, there is a significant delay till the Beaglebone Green is accessible after powering up over USB.   
 ```bash
@@ -94,7 +94,9 @@ sys	0m0.213s
 ```
 
 ## 2. Connection between development host and Beaglebone Green
-For robotics based development, often the software would need to be cross-compiled on the development host PC and then transferred to the Beaglebone Green. This is because development on host PC is much faster than on resource constrained Beaglebone Green. The Beaglebone Green when connected to host over USB, creates a USB ethernet connection. This connection can be used to communicate between host and Beaglebone just like a normal ethernet connection. Morever, the internet connection of the host can also be shared with the Beaglebone, making it easier to install packages.
+For robotics based development, it's a common use-case to cross-compile the software on the development host PC and then transfer the generated binaries to the target device. This is because the development on host PC is much faster than on the resource constrained embedded device.
+
+The Beaglebone Green when connected to host over USB, creates a USB ethernet connection. This connection can be used to communicate between host and Beaglebone just like a normal ethernet connection. Morever, the internet connection of the host can also be shared with the Beaglebone, making it easier to install packages.
 
 ### 2.1 Sharing the internet over USB Ethernet
 On host pc, find out the USB ethernet interface of the Beaglebone Green. It will be the interface with IP address *192.168.7.1*. Note down the name of this interface *enx3403de6337b1* as it will be used to setup IP packet forwarding to enable internet access. Also note down the host interface connected to the internet which is wlp1s0 in this case.
@@ -201,7 +203,7 @@ In addition to base cape, I also ordered the Grove I2C hub, which allows connect
 
 ### 4.2 Using the Grove base cape in Linux
 #### 4.2.1 The deprecated Capemanager interface
-As mentioned earlier, I was expecting the same Beaglebone Capemanager interface to load the device tree overlay for the Grove base cape. I tried dumping the contents of the Grove base cape EEPROM to find the part number and revision, which is supposed to load the correct device tree overlay fragment (dtbo) for the Grove base cape.
+As mentioned earlier, I was expecting the familiar Beaglebone Capemanager interface to load the device tree overlay for the Grove base cape. I tried dumping the contents of the Grove base cape EEPROM to find the part number and revision, which is supposed to load the correct device tree overlay fragment (dtbo) for the Grove base cape.
 
 ```bash
 debian@beaglebone:~$ sudo cat /sys/bus/i2c/devices/2-0054/eeprom | hexdump -C
@@ -231,9 +233,9 @@ This new feature is called the [Beaglebone Universal I/O](https://github.com/cds
 #### 4.2.2 Using the new Beaglebone Universal I/O
 Before using the Beaglebone Universal I/O mechanism, it is worth mentioning that it works on the Beaglebone pin addressing scheme.
 
-On Beaglebone, the pins are referenced by the their P8/P9 header name and position. For example, GPIO pin 115 is referenced as P9_27.
+On Beaglebone, the pins are referenced by their P8/P9 header name and position. For example, GPIO pin 115 is referenced as P9_27.
 
-For a complete reference on pin naming schemes and other details, these documents prepared by Derek Molloy are a complete comprehensive resources.
+For a complete reference on pin naming schemes and other details, these documents prepared by Derek Molloy are the most comprehensive resources.
 
 [P8 header reference](https://github.com/derekmolloy/boneDeviceTree/blob/master/docs/BeagleboneBlackP8HeaderTable.pdf)
 
@@ -368,7 +370,7 @@ Below is the schematics of the ADC pin protection and interface circuit on Beagl
 
 The analog input from the Grove ADC port goes to a voltage divider circuit, and then the scaled down voltage is fed into the non-inverting input of LMV324 op-amp, configured in the voltage follower mode with unity gain. The input voltage scaling factor comes out to be 0.359 (56k/(56k + 100k). This means that the voltage of upto 5.8V can be safely applied to the Grove ADC pins (this doesn't take into account the effect of resistance tolerances which is 1%). The negative supply voltage of the op-amp is connected to GND so ideally the negative input voltages would get clamped to 0V (I am not sure why there is still a negative side clamping diode on ADC input). The BAT54SW in the schmatics is the low forward voltage drop Schottky diode and is used to clamp the ADC input voltage to 1.8V + forward voltage drop of the diode. For an average value of 0.3V forward voltage drop, this makes the positive clamping voltage to be 2.1V, the maximum tolereable ADC input voltage level.
 
-I still don't get the why there are 1k resistors (R6, R10) in the feedback path, as per my understanding, these resistors should be connected between the output of op-amp and Beaglebone's analog pins as the only function they seem to have is limit the current going into the ADC pins when they are clamped. Anyways, it's been ages since I worked with op-amps at the hardware level so maybe I am missing something but still, all the ADC protection circuits I have found for Beaglebone Black has the current limiting resistor connected between the op-amp output and ADC input pins.   
+I still don't get the why there are 1k resistors (R6, R10) in the feedback path, as per my understanding, these resistors should be connected between the output of op-amp and Beaglebone's analog pins as the only function they seem to have is limiting the current going into the ADC pins when they are clamped. Anyways, it's been ages since I worked with op-amps at the hardware level so maybe I am missing something but still, all the ADC protection circuits I have found for Beaglebone Black has the current limiting resistor connected between the op-amp output and ADC input pins.   
 
 #### 4.4.2 Reading the ADC pins
 The sysfs based interface for reading the ADC pins is shown below:
@@ -488,10 +490,11 @@ Finally, I connected 2 continuous servos to the PWM driver. See the result below
 ![Servos in action](images/servos_in_action.gif)
 
 ## 6. ROS
-ROS is an integral part of the modern robotic systems. It provides the software infrastructure to develop complex robotic applications and provides the implementation of most of the robotic functionality including sensor interfacing, communication, navigation, mapping and simulation.
+ROS is an integral part of the modern robotic systems. It provides a standardized
+software infrastructure to develop complex robotic applications and provides the implementation of commonly desired robotic functionalities including sensor interfacing, communication, navigation, mapping and simulation etc.
 
 ### 6.1 Installing ROS on Beaglebone Green
-While looking for instructions on installing ROS on Beagebone Green debian, I found out that currently there are three options for enabling ROS on Beaglebone:
+While looking for the instructions for installing ROS on the debian distribution of Beagebone Green, I found out that currently there are three options for enabling ROS on Beaglebone:
 
 1. Run Ubuntu distribution on Beaglebone Green and then install the compatible ROS packages.
 2. Run the Angstrom distribution on Beaglebone Green and then add additional ROS packages.
@@ -499,7 +502,7 @@ While looking for instructions on installing ROS on Beagebone Green debian, I fo
 
 **Note: Although the ROS package has precompiled binaries for debian distribution but they don't support "*"armhf"* architecture as of now. See http://wiki.ros.org/kinetic/Installation/Debian**
 
-The first 2 options require replacing the default debian distribution of the Beaglebone Green and it might break some functionality. Therefore, I decided to compile the ROS from source.
+The first 2 options require replacing the default debian distribution of the Beaglebone Green and it might break some existing functionality. Therefore, I decided to compile the ROS from source.
 
 I tried cross-compiling the ROS from sources first, as it should be way faster than compiling on the Beaglebone but unfortunately, I couldn't finish the cross-compilation as some packages were broken.
 
@@ -540,9 +543,9 @@ debian@beaglebone:~$ dmesg | tail -n 3
 [ 2671.767913] remoteproc remoteproc1: Booting fw image toggle_led, size 31812
 [ 2671.767956] remoteproc remoteproc1: remote processor 4a334000.pru is now up
 ```
-Unfortunately I didn't have access to oscilloscope to actually see the toggle signal generated by PRU bu I got no erros which means it's all good.
+Unfortunately I didn't have access to oscilloscope to actually see the toggle signal generated by PRU but since I did not get any error messages, I assumed it's all good.
 
-Still, I decided to build PRU UART example and see if I can get some data on UART1 from PRU. I built the project *PRU_Hardware_UART" from *pru-software-support-package* examples. The example source runs in loopback mode where the UART signals are not exposed on the pins and TX data is routed internally to RX. Therefore, the default example project doesn't allow to observe the UART signals. Therefore I build the example project after disabling the UART loopback mode.
+Still to make sure, I decided to build PRU UART example and see if I can get some data on UART1 from PRU. I built the project *PRU_Hardware_UART* from *pru-software-support-package* examples. The example source runs in the loopback mode where the UART signals are not exposed on the pins and TX data is routed internally to RX. Therefore, it is not possible to observe the UART signals in the default example project, without disabling the loopback UART mode. Therefore, I modified the example project to disable loopback mode and rebuilt it.
 
 ![PRU UART](images/pru_uart.jpg)
 
@@ -585,17 +588,19 @@ debian@beaglebone:~$ dmesg | tail -n 6
 [ 6258.333542] remoteproc remoteproc1: remote processor 4a334000.pru is now up
 ```
 
-The PRU UART firmware writes a character from the string **"Hello!"** to the UART TX, and then it waits to receive a character from host, before sending more data. It doesn't matter what the host sends back i.e. it can be any character. But the host must send something in order for the PRU firmware to proceed.
+The PRU UART firmware writes a character from the string **"Hello!"** to the UART TX, and then it waits to receive a character from host, before sending more data. It doesn't matter what the host sends back i.e. it can be any character. But the host must send something in order for the PRU firmware to proceed and send further data.
 
 The successful execution of PRU UART example verified that the PRU development environment has been set correctly and it is now ready for PRU application development.
 
 ## Conclusion
 At the end of this roadtest, I have managed to setup all the building blocks required to build a platform for ROS based robotics development on Beaglebone Green. The Beaglebone Green is essentially the same as Beaglebone Black. This can be a huge plus and also a source of great confusion, because there is too much documentation and community support available that's outdated now.
 
-The decision to rely on Linux kernel's interfaces for controlling the hardware instead of using the Cloud9 IDE or Bonescript was done because first, I wanted to have the least abstraction and full-control over the system, and secondly, it will be easier to develop ROS applications that can access the hardware using Kernel's native interfaces and that should be faster as well.
+The decision to rely on Linux kernel's interfaces for controlling the hardware instead of using the Cloud9 IDE or Bonescript was done because first, I wanted to have the least abstraction and full-control over the system, and secondly, it will be easier and faster to develop ROS applications, that can access the hardware using Linux Kernel's native interfaces.
 
-I personally found the Grove system to be very convenient. The physical connection of the connector is quite solid and there are adapter cables like Grove-connector-to-female-header cable that allow to interface with non-Grove components as well. And there is a good number of Grove components available as well. However, to benefit from the whole range of Grove sensors, I think the Beaglebone Green Grove base cape is a must have add-on. The Grove connectors on the Beaglebone Green board itself cannot support all of Grove sensors and modules, specifically the ones with  Digital and Analog I/O.
+I personally found the Grove system to be very convenient. The physical connection of the connector is quite solid and there are adapter cables like Grove-connector-to-female-header cable that allows interfacing with other non-Grove components. And there is a good number of Grove components available, to meet most of the requirements of a project. However, to benefit from the whole range of Grove modules, I think the Beaglebone Green Grove base cape is a must have add-on. The Grove connectors on the Beaglebone Green board itself cannot support all of the Grove sensors and modules, specifically the ones with the digital and analog interfaces (non UART/I2C).
 
-And their might a little confusion about the Grove interface itself as well because at first, it seems like all Grove components can be connected to the Grove connector but in fact, Grove connector can have different underlying protocol so the Grove connector and Grove component should be matched carefully.
+And their might be a little confusion about the Grove connector itself as well. Since all Grove modules have the same connector, it seems like all of the Grove modules are compatible and interoperable. However, Grove connector can have different underlying protocol so the Grove connector and Grove component should be matched carefully.
 
-All in all, it is a good cheaper alternative to Beaglebone Black. I would like to see improvement in the power interface, especially on making it battery operated out-of-the box so that it can be easily deployed in field or battery powered applications. With the base platform set, now I can work on to implementing the Hexabot software.
+Overall, it is a good, cheaper alternative to Beaglebone Black. I would like to see some improvements in the power interface, particularly in supporting the battery powered mode out-of-the box, so that it can be deployed easily in the field or battery powered applications.
+
+The base platform is all set for robotics related exploration.
