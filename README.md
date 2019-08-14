@@ -163,7 +163,7 @@ The Beaglebone Grove base cape forms the base shield, to which other Grove modul
 
 ![Grove base cape](images/grove_base_cape.jpeg)
 
-The Grove base cape has 6 digital Grove ports (2 of them can be used as UARTs), 2 analog Grove ports and 4 I2C Grove ports. The base cape also contains a 32KB EEPROM which is originally intended to store the cape specific information for Capemanager and it is also possible disable the write protect of the EEPROM, by shorting a jumper on board, and use it to store custom data.
+The Grove base cape has 6 digital Grove ports (2 of them can be used as UARTs), 2 analog Grove ports and 4 I2C Grove ports. The base cape also contains a 32KB EEPROM which is originally intended to store the cape specific information for Capemanager and it is also possible to disable the write protect of the EEPROM, by shorting a jumper on board, and use it to store custom data.
 
 In addition, it also has a 3.3 – 5V voltage level selection switch, which allows to set the output voltage levels on the base cape Grove ports. Now there is common concern that voltage should not be applied to any Beaglebone I/O pins before the board itself is powered up. It is mentioned in the section "5.15 Expansion Board External Power" of the BBG SRM. Therefore, this voltage switch also acts to protect the Beaglebone pins by making sure no voltage is applied before full power up.
 
