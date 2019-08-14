@@ -564,4 +564,13 @@ The PRU UART firmware writes a character from the string **"Hello!"** to the UAR
 The successful execution of PRU UART example verified that the PRU development environment has been set correctly and it is now ready for PRU application development.
 
 ## Conclusion
-During these roadtest, 
+At the end of this roadtest, I have managed to setup all the building blocks required to build a platform for ROS based robotics development on Beaglebone Green. The Beaglebone Green is essentially the same as Beaglebone Black. This can be a huge plus and also a source of great confusion, because there is too much documentation and community support available that's outdated now.
+
+The decision to rely on Linux kernel's interfaces for controlling the hardware instead of using the Cloud9 IDE or Bonescript was done because first, I wanted to have the least abstraction and full-control over the system, and secondly, it will be easier to develop ROS applications that can access the hardware using Kernel's native interfaces and that should be faster as well.
+
+I personally found the Grove system to be very convenient. The physical connection of the connector is quite solid and there are adapter cables like Grove-connector-to-female-header cable that allow to interface with non-Grove components as well. And there is a good number of Grove components available as well. However, to benefit from the whole range of Grove sensors, I think the Beaglebone Green Grove base cape is a must have add-on. The Grove connectors on the Beaglebone Green board itself cannot support all of Grove sensors and modules, specifically the ones with  Digital and Analog I/O.
+
+And their might a little confusion about the Grove interface itself as well because at first, it seems like all Grove components can be connected to the Grove connector but in fact, Grove connector can have different underlying protocol so the Grove connector and Grove component should be matched carefully.
+
+All in all, it is a good cheaper alternative to Beaglebone Black.
+With the base platform set, now I can work on implementing the Hexabot gait control software
